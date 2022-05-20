@@ -7,8 +7,8 @@ import (
 
 var commentCtl = repository.GetCommentCtl()
 
-func Publish(comment *model.Comment) error {
-	return commentCtl.Publish(comment)
+func Publish(videoId int64, comment *model.Comment) error {
+	return commentCtl.Publish(videoId, comment)
 }
 
 func DeleteById(commentId int64) error {
@@ -16,5 +16,5 @@ func DeleteById(commentId int64) error {
 }
 
 func QueryListByVideoId(videoId int64) ([]model.Comment, error) {
-	return QueryListByVideoId(videoId)
+	return commentCtl.QueryListByVideoId(videoId)
 }

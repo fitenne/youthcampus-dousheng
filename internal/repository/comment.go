@@ -30,8 +30,10 @@ func GetCommentCtl() model.CommentCtl {
 	return &commentCtl
 }
 
-func (commentCtl *CommentCtl) Publish(comment *model.Comment) error {
-	return dbProvider.GetDB().Create(comment).Error
+// todo
+func (commentCtl *CommentCtl) Publish(videoId int64, comment *model.Comment) error {
+	err := dbProvider.GetDB().Create(comment).Error
+	return err
 }
 
 func (commentCtl *CommentCtl) DeleteById(commentId int64) error {

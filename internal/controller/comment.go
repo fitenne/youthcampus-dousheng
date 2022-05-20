@@ -72,11 +72,10 @@ func CommentAction(c *gin.Context) {
 			commentText := c.Query("comment_text")
 
 			// 调用发布接口
-			err = service.Publish(&model.Comment{
+			err = service.Publish(videoId, &model.Comment{
 				User: model.User{
 					ID: userId,
 				},
-				VideoId:     videoId,
 				CommentText: commentText,
 				CreatedAt:   time.Now(),
 			})
@@ -127,7 +126,7 @@ func CommentAction(c *gin.Context) {
 func CommentList(c *gin.Context) {
 
 	// 获取评论id
-	videoIdQuery := c.Query("video_id")
+	videoIdQuery := c.DefaultQuery("video_id", "")
 
 	// 参数处理
 	videoId, err := strconv.ParseInt(videoIdQuery, 10, 64)
