@@ -1,9 +1,14 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
-	"sync/atomic"
+
+	"github.com/fitenne/youthcampus-dousheng/internal/common/mid"
+	"github.com/fitenne/youthcampus-dousheng/internal/repository"
+	"github.com/fitenne/youthcampus-dousheng/internal/service"
+	"github.com/fitenne/youthcampus-dousheng/pkg/model"
+	"github.com/gin-gonic/gin"
 )
 
 // usersLoginInfo use map to store user info, and key is username+password for demo
@@ -29,64 +34,121 @@ type UserLoginResponse struct {
 
 type UserResponse struct {
 	Response
-	User User `json:"user"`
+	User model.User `json:"user"`
 }
 
 func Register(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	token := username + password
-
-	if _, exist := usersLoginInfo[token]; exist {
+	if username == "" || password == "" {
 		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
+			Response: Response{
+				StatusCode: http.StatusBadRequest,
+				StatusMsg:  "invalid request",
+			},
 		})
-	} else {
-		atomic.AddInt64(&userIdSequence, 1)
-		newUser := User{
-			Id:   userIdSequence,
-			Name: username,
-		}
-		usersLoginInfo[token] = newUser
-		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 0},
-			UserId:   userIdSequence,
-			Token:    username + password,
-		})
+		return
 	}
+
+	exists, err := service.UserExists(username)
+	if exists {
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusForbidden,
+				StatusMsg:  "User already exist",
+			},
+		})
+		return
+	}
+	if err != nil {
+		log.Print(err.Error())
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusInternalServerError,
+				StatusMsg:  "internal server error",
+			},
+		})
+		return
+	}
+
+	id, token, err := service.UserRegister(username, password)
+	if err != nil {
+		log.Print(err.Error())
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusInternalServerError,
+				StatusMsg:  "internal server error",
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserLoginResponse{
+		UserId: id,
+		Token:  token,
+	})
 }
 
 func Login(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	token := username + password
-
-	if user, exist := usersLoginInfo[token]; exist {
+	if username == "" || password == "" {
 		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 0},
-			UserId:   user.Id,
-			Token:    token,
+			Response: Response{
+				StatusCode: http.StatusBadRequest,
+				StatusMsg:  "invalid request",
+			},
 		})
-	} else {
-		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
-		})
+		return
 	}
+
+	id, token, err := service.UserLogin(username, password)
+	if err != nil {
+		log.Print(err.Error())
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusInternalServerError,
+				StatusMsg:  "internal server error",
+			},
+		})
+		return
+	}
+	if token == "" {
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusUnauthorized,
+				StatusMsg:  "invalid credentials",
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserLoginResponse{
+		Response: Response{StatusCode: 0},
+		UserId:   id,
+		Token:    token,
+	})
 }
 
 func UserInfo(c *gin.Context) {
-	token := c.Query("token")
+	id := c.GetInt64(mid.UserIDKey)
 
-	if user, exist := usersLoginInfo[token]; exist {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 0},
-			User:     user,
+	u, err := repository.GetUserCtl().QueryByID(id)
+	if err != nil {
+		log.Print(err.Error())
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusInternalServerError,
+				StatusMsg:  "internal server error",
+			},
 		})
-	} else {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
-		})
+		return
 	}
+
+	c.JSON(http.StatusOK, UserResponse{
+		Response: Response{StatusCode: 0},
+		User:     u,
+	})
 }
