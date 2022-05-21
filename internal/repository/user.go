@@ -17,7 +17,8 @@ import (
 type User struct {
 	ID            int64  `gorm:"primarykey"`
 	UserName      string `gorm:"index:username,class:FULLTEXT,size:256"` // indexed for better authentication peformance
-	Password      string `gorm:"size:256"`
+	Salt          []byte `gorm:"type:blob(32)"`
+	Password      []byte `gorm:"type:blob(32)"`
 	FollowCount   int64
 	FollowerCount int64
 	CreatedAt     time.Time
