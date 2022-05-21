@@ -10,6 +10,7 @@ type User struct {
 
 // 对数据库的修改应通过 model.UserCtl 完成
 type UserCtl interface {
+	// 找不到返回零值
 	QueryByID(id int64) (User, error)
 	QueryByName(name string) (User, error)
 
