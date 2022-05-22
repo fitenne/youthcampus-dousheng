@@ -16,13 +16,13 @@ import (
 
 // user struct mapped to database
 type User struct {
-	ID            int64  `gorm:"primarykey"`
-	UserName      string `gorm:"index:username,class:FULLTEXT,size:256"` // indexed for better authentication peformance
-	Salt          []byte `gorm:"type:blob(32)"`
-	Password      []byte `gorm:"type:blob(32)"`
-	FollowCount   int64
-	FollowerCount int64
-	CreatedAt     time.Time
+	ID            int64     `gorm:"primarykey"`
+	UserName      string    `gorm:"type:varchar(32);unique_index;not null"` // indexed for better authentication peformance
+	Salt          []byte    `gorm:"type:TINYBLOB;not null"`
+	Password      []byte    `gorm:"type:TINYBLOB;not null"`
+	FollowCount   int64     `gorm:"DEFAULT:0"`
+	FollowerCount int64     `gorm:"DEFAULT:0"`
+	CreatedAt     time.Time `gorm:"DEFAULT:CURRENT_TIMESTAMP"`
 	UpdatedAt     time.Time
 	DeletedAt     gorm.DeletedAt
 }
@@ -76,6 +76,10 @@ func (*userCtl) QueryByName(name string) (model.User, error) {
 
 // 返回新用户的 ID
 func (*userCtl) Create(name string, pass, salt []byte) (id int64, err error) {
+	if len(pass) == 0 || len(salt) == 0 {
+		return 0, errors.New("invalid argument")
+	}
+
 	u := &User{
 		UserName: name,
 		Password: pass,
