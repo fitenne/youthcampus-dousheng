@@ -37,11 +37,19 @@ type UserResponse struct {
 	User model.User `json:"user"`
 }
 
-func Register(c *gin.Context) {
-	username := c.Query("username")
-	password := c.Query("password")
+type RegisterRequest struct {
+	Username string `query:"username" binding:"required" validate:"gt=0,lte=32"`
+	Password string `query:"password" binding:"required"`
+}
 
-	if username == "" || password == "" {
+type LoginRequest struct {
+	Username string `query:"username" binding:"required" validate:"gt=0,lte=32"`
+	Password string `query:"password" binding:"required"`
+}
+
+func Register(c *gin.Context) {
+	var regReq RegisterRequest
+	if err := c.BindQuery(&regReq); err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{
 				StatusCode: http.StatusBadRequest,
@@ -51,7 +59,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	exists, err := service.UserExists(username)
+	exists, err := service.UserExists(regReq.Username)
 	if exists {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{
@@ -72,7 +80,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	id, token, err := service.UserRegister(username, password)
+	id, token, err := service.UserRegister(regReq.Username, regReq.Password)
 	if err != nil {
 		log.Print(err.Error())
 		c.JSON(http.StatusOK, UserLoginResponse{
@@ -91,10 +99,8 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	username := c.Query("username")
-	password := c.Query("password")
-
-	if username == "" || password == "" {
+	var loginReq LoginRequest
+	if err := c.BindQuery(&loginReq); err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{
 				StatusCode: http.StatusBadRequest,
@@ -104,7 +110,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	id, token, err := service.UserLogin(username, password)
+	id, token, err := service.UserLogin(loginReq.Username, loginReq.Password)
 	if err != nil {
 		log.Print(err.Error())
 		c.JSON(http.StatusOK, UserLoginResponse{
@@ -134,6 +140,15 @@ func Login(c *gin.Context) {
 
 func UserInfo(c *gin.Context) {
 	id := c.GetInt64(mid.UserIDKey)
+	if id == 0 {
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusUnauthorized,
+				StatusMsg:  "invalid credentials",
+			},
+		})
+		return
+	}
 
 	u, err := repository.GetUserCtl().QueryByID(id)
 	if err != nil {
