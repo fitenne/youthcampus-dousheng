@@ -1,17 +1,28 @@
 package service
 
 import (
-	"crypto"
 	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"errors"
-	"log"
 
 	"github.com/fitenne/youthcampus-dousheng/internal/common"
 	"github.com/fitenne/youthcampus-dousheng/internal/common/jwt"
 	"github.com/fitenne/youthcampus-dousheng/internal/repository"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
 )
+
+func getDgst(salt []byte, T string) ([]byte, error) {
+	hasher := sha256.New()
+	_, err := hasher.Write(append(salt, []byte(T)...))
+	if err != nil {
+		return nil, err
+	}
+
+	dgst := make([]byte, 0, 32)
+	dgst = hasher.Sum(dgst)
+	return dgst, nil
+}
 
 func UserExists(username string) (bool, error) {
 	_, err := repository.GetUserCtl().QueryByName(username)
@@ -32,13 +43,10 @@ func UserRegister(username, password string) (id int64, token string, err error)
 		return 0, "", err
 	}
 
-	hasher := crypto.SHA256.New()
-	_, err = hasher.Write(append(salt, []byte(password)...))
+	dgst, err := getDgst(salt, password)
 	if err != nil {
 		return 0, "", err
 	}
-	dgst := make([]byte, 0, 32)
-	dgst = hasher.Sum(dgst)
 
 	id, err = repository.GetUserCtl().Create(username, dgst, salt)
 	if err != nil {
@@ -53,25 +61,24 @@ func UserRegister(username, password string) (id int64, token string, err error)
 	return id, token, nil
 }
 
-// 返回 id, token，若登陆凭证无效，返回 (0, "", err)
+// 返回 id, token，若登陆凭证无效，返回 (0, "", nil)
 func UserLogin(username, password string) (id int64, token string, err error) {
-	log.Printf("UserLogin: %v : %v", username, password)
 	id, p, s, err := repository.GetUserCtl().QueryCredentialsByName(username)
 	if err != nil {
-		return 0, "", err
-	}
-
-	hasher := crypto.SHA256.New()
-	_, err = hasher.Write(append(s, []byte(password)...))
-	if err != nil {
+		if errors.Is(err, common.ErrUserNotExists{}) {
+			return 0, "", nil
+		}
 		return 0, "", err
 	}
 
 	dgst := make([]byte, 0, 32)
-	dgst = hasher.Sum(dgst)
+	dgst, err = getDgst(s, password)
+	if err != nil {
+		return 0, "", err
+	}
+
 	if !hmac.Equal(dgst, p) {
-		log.Printf("UserLogin: %v =? %v", dgst, p)
-		return 0, "", errors.New("invalid credentials")
+		return 0, "", nil
 	}
 
 	token, err = jwt.GenToken(id)

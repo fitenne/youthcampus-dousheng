@@ -25,7 +25,7 @@ var goodUser = repository.User{
 	ID:            1,
 	UserName:      "alice",
 	Salt:          []byte("10086"),
-	Password:      []byte("10086"),
+	Password:      []byte{0x11, 0x46, 0x5, 0x19, 0x70, 0x5b, 0x29, 0x7e, 0x4, 0x2c, 0xd, 0xa8, 0x43, 0xe0, 0x54, 0xb5, 0x85, 0x4b, 0xa3, 0xc, 0xfc, 0x3, 0xff, 0x51, 0x18, 0xba, 0x79, 0xa9, 0xf9, 0xc2, 0xbb, 0x64}, // sha256("1008610086")
 	FollowCount:   0,
 	FollowerCount: 0,
 }
@@ -69,30 +69,48 @@ func mock(t *testing.T) *mocks.MockUserCtl {
 		Create(notExistsName, gomock.Not(lenZero), gomock.Not(lenZero)).AnyTimes().
 		Return(int64(1), nil)
 
-	goodName := gomock.Not(gomock.Eq(notExistsUser.UserName))
-	goodID := gomock.Not(gomock.Eq(notExistsUser.ID))
+	goodName := gomock.Eq(goodUser.UserName)
+	goodID := gomock.Eq(goodUser.ID)
 	mockUserCtl.EXPECT().
 		QueryByID(gomock.Not(goodID)).AnyTimes().
 		Return(model.User{}, common.ErrUserNotExists{})
 	mockUserCtl.EXPECT().
-		QueryByID(goodID).AnyTimes().
-		Return(model.User{}, nil)
+		QueryByID(gomock.Eq(goodUser.ID)).AnyTimes().
+		Return(model.User{
+			ID:   goodUser.ID,
+			Name: goodUser.UserName,
+		}, nil)
 
 	mockUserCtl.EXPECT().
 		QueryByName(gomock.Not(goodName)).AnyTimes().
 		Return(model.User{}, common.ErrUserNotExists{})
 	mockUserCtl.EXPECT().
 		QueryByName(goodName).AnyTimes().
-		Return(model.User{}, nil)
+		Return(model.User{
+			ID:   goodUser.ID,
+			Name: goodUser.UserName,
+		}, nil)
 
 	mockUserCtl.EXPECT().
 		QueryCredentialsByName(gomock.Not(goodName)).AnyTimes().
 		Return(int64(0), nil, nil, common.ErrUserNotExists{})
 	mockUserCtl.EXPECT().
 		QueryCredentialsByName(goodName).AnyTimes().
-		Return(int64(0), goodUser.Password, goodUser.Salt, nil)
+		Return(goodUser.ID, goodUser.Password, goodUser.Salt, nil)
 
 	return mockUserCtl
+}
+
+var parseUserLoginResponse = func(r io.Reader, t *testing.T) controller.UserLoginResponse {
+	body, err := ioutil.ReadAll(r)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	resp := controller.UserLoginResponse{}
+	if err := json.Unmarshal(body, &resp); err != nil {
+		t.Fatal(err.Error())
+	}
+	return resp
 }
 
 func TestRegister(t *testing.T) {
@@ -100,18 +118,6 @@ func TestRegister(t *testing.T) {
 	mockUserCtl := mock(t)
 	repository.GetUserCtl = func() model.UserCtl {
 		return mockUserCtl
-	}
-
-	parseBody := func(r io.Reader, t *testing.T) controller.UserLoginResponse {
-		body, err := ioutil.ReadAll(r)
-		if err != nil {
-			t.Fatal(err.Error())
-		}
-		resp := controller.UserLoginResponse{}
-		if err := json.Unmarshal(body, &resp); err != nil {
-			t.Fatal(err.Error())
-		}
-		return resp
 	}
 
 	t.Run("normal register", func(t *testing.T) {
@@ -131,9 +137,9 @@ func TestRegister(t *testing.T) {
 			t.Errorf("/douyin/user/register: want status code: %v, but got %v", http.StatusOK, w.Result().StatusCode)
 		}
 
-		resp := parseBody(w.Body, t)
-		if resp.UserId != notExistsUser.ID {
-			t.Errorf("/douyin/user/register: want id: %v, but got %v", notExistsUser.ID, resp.UserId)
+		resp := parseUserLoginResponse(w.Body, t)
+		if resp.StatusCode != 0 {
+			t.Errorf("/douyin/user/register: want StatusCode: %v, but got %v", 0, resp.UserId)
 		}
 		token, err := jwt.GenToken(resp.UserId)
 		if err != nil {
@@ -202,9 +208,115 @@ func TestRegister(t *testing.T) {
 				t.Errorf("/douyin/user/register: want status code: %v, but got %v", http.StatusOK, w.Result().StatusCode)
 			}
 
-			resp := parseBody(w.Body, t)
+			resp := parseUserLoginResponse(w.Body, t)
 			if resp.Response.StatusCode != http.StatusBadRequest {
 				t.Errorf("/douyin/user/register: want response code: %v, but got %v", http.StatusBadRequest, resp.Response.StatusCode)
+			}
+		})
+	}
+}
+
+func TestLogin(t *testing.T) {
+	g := setupRouter()
+	mockUserCtl := mock(t)
+	repository.GetUserCtl = func() model.UserCtl {
+		return mockUserCtl
+	}
+
+	_, _, s, err := repository.GetUserCtl().QueryCredentialsByName("bob")
+	if err != nil {
+		t.Log(s, err.Error())
+	}
+
+	parseBody := func(r io.Reader, t *testing.T) controller.UserLoginResponse {
+		body, err := ioutil.ReadAll(r)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+		resp := controller.UserLoginResponse{}
+		if err := json.Unmarshal(body, &resp); err != nil {
+			t.Fatal(err.Error())
+		}
+		return resp
+	}
+
+	t.Run("normal login", func(t *testing.T) {
+		url := url.URL{Path: "/douyin/user/login"}
+		query := url.Query()
+		query.Add("username", goodUser.UserName)
+		query.Add("password", "10086")
+		url.RawQuery = query.Encode()
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", url.String(), nil)
+		g.ServeHTTP(w, req)
+
+		if w.Result().StatusCode != http.StatusOK {
+			t.Errorf("/douyin/user/login: want status code: %v, but got %v", http.StatusOK, w.Result().StatusCode)
+		}
+
+		resp := parseBody(w.Body, t)
+		if resp.Response.StatusCode != 0 {
+			t.Errorf("/douyin/user/login: want response code: %v, but got %v", http.StatusOK, resp.Response.StatusCode)
+		}
+	})
+
+	unAuth := []struct {
+		name               string
+		username, password string
+	}{
+		{"mismatch name pass 1", goodUser.UserName, "1234"},
+		{"mismatch name pass 2", "bob", "10086"},
+	}
+	for _, tt := range unAuth {
+		t.Run(tt.name, func(t *testing.T) {
+			url := url.URL{Path: "/douyin/user/login"}
+			query := url.Query()
+			query.Add("username", tt.username)
+			query.Add("password", tt.password)
+			url.RawQuery = query.Encode()
+
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("POST", url.String(), nil)
+			g.ServeHTTP(w, req)
+
+			if w.Result().StatusCode != http.StatusOK {
+				t.Errorf("/douyin/user/login: want status code: %v, but got %v", http.StatusOK, w.Result().StatusCode)
+			}
+
+			resp := parseBody(w.Body, t)
+			if resp.Response.StatusCode != http.StatusUnauthorized {
+				t.Errorf("/douyin/user/login: want response code: %v, but got %v", http.StatusUnauthorized, resp.Response.StatusCode)
+			}
+		})
+	}
+
+	badRequest := []struct {
+		name               string
+		username, password string
+	}{
+		{"too long name", tooLongNameUser.UserName, "10086"},
+		{"too long pass", "alice", tooLongNameUser.UserName},
+	}
+	for _, tt := range badRequest {
+		t.Run(tt.name, func(t *testing.T) {
+			url := url.URL{Path: "/douyin/user/login"}
+			query := url.Query()
+			query.Add("username", tt.username)
+			query.Add("password", tt.password)
+			url.RawQuery = query.Encode()
+
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("POST", url.String(), nil)
+			g.ServeHTTP(w, req)
+
+			if w.Result().StatusCode != http.StatusOK {
+				t.Errorf("/douyin/user/login: want status code: %v, but got %v", http.StatusOK, w.Result().StatusCode)
+			}
+
+			resp := parseBody(w.Body, t)
+			if resp.Response.StatusCode != http.StatusBadRequest {
+				t.Errorf("/douyin/user/login: want response code: %v, but got %v", http.StatusBadRequest, resp.Response.StatusCode)
 			}
 		})
 	}
