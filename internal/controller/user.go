@@ -38,18 +38,18 @@ type UserResponse struct {
 }
 
 type RegisterRequest struct {
-	Username string `query:"username" binding:"required" validate:"gt=0,lte=32"`
-	Password string `query:"password" binding:"required"`
+	Username string `form:"username" binding:"required,gt=0,lte=32"`
+	Password string `form:"password" binding:"required,gt=0,lte=32"`
 }
 
 type LoginRequest struct {
-	Username string `query:"username" binding:"required" validate:"gt=0,lte=32"`
-	Password string `query:"password" binding:"required"`
+	Username string `form:"username" binding:"required,gt=0,lte=32"`
+	Password string `form:"password" binding:"required,gt=0,lte=32"`
 }
 
 func Register(c *gin.Context) {
 	var regReq RegisterRequest
-	if err := c.BindQuery(&regReq); err != nil {
+	if err := c.ShouldBindQuery(&regReq); err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{
 				StatusCode: http.StatusBadRequest,
