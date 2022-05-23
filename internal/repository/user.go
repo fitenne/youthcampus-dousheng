@@ -68,7 +68,7 @@ func (*userCtl) QueryByName(name string) (model.User, error) {
 	}
 
 	return model.User{
-		ID:            int64(user[0].ID),
+		ID:            user[0].ID,
 		Name:          user[0].UserName,
 		FollowCount:   user[0].FollowCount,
 		FollowerCount: user[0].FollowerCount,
