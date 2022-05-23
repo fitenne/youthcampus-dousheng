@@ -43,20 +43,20 @@ func CommentAction(c *gin.Context) {
 	// 检查token
 	if _, exist := usersLoginInfo[params["token"]]; exist {
 
+		// userId 校验
+		userId, err := strconv.ParseInt(userIdQuery, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 2,
+				StatusMsg:  "Invalid param <comment_id>: " + userIdQuery,
+			})
+			return
+		}
+
 		// action_type: 1-发布评论，2-删除评论 其余返回异常
-		var err error
+		var serverErr error = nil
 		switch actionType {
 		case "1": // 发布评论
-
-			// userId 校验
-			userId, err := strconv.ParseInt(userIdQuery, 10, 64)
-			if err != nil {
-				c.JSON(http.StatusOK, Response{
-					StatusCode: 2,
-					StatusMsg:  "Invalid param <comment_id>: " + userIdQuery,
-				})
-				return
-			}
 
 			// videoId 校验
 			videoId, err := strconv.ParseInt(videoIdQuery, 10, 64)
@@ -69,21 +69,21 @@ func CommentAction(c *gin.Context) {
 			}
 
 			// 获取评论内容
-			commentText := c.Query("comment_text")
+			commentText := c.DefaultQuery("comment_text", "")
 
 			// 调用发布接口
-			err = service.Publish(videoId, &model.Comment{
+			serverErr = service.Publish(videoId, &model.Comment{
 				User: model.User{
 					ID: userId,
 				},
 				CommentText: commentText,
-				CreatedAt:   time.Now(),
+				CreateDate:  time.Now(),
 			})
 
 		case "2": // 删除评论
 
 			// 获取评论id
-			commentIdQuery := c.Query("comment_id")
+			commentIdQuery := c.DefaultQuery("comment_id", "")
 
 			// 参数处理
 			commentId, err := strconv.ParseInt(commentIdQuery, 10, 64)
@@ -96,7 +96,7 @@ func CommentAction(c *gin.Context) {
 			}
 
 			// 调用删除接口
-			err = service.DeleteById(commentId)
+			serverErr = service.DeleteById(userId, commentId)
 
 		default: // 异常分支处理，操作类型异常
 			c.JSON(http.StatusOK, Response{
@@ -107,10 +107,10 @@ func CommentAction(c *gin.Context) {
 		}
 
 		// 异常分支处理：操作异常
-		if err != nil {
+		if serverErr != nil {
 			c.JSON(http.StatusOK, Response{
 				StatusCode: 3,
-				StatusMsg:  "server error " + err.Error(),
+				StatusMsg:  "error " + serverErr.Error(),
 			})
 			return
 		}
@@ -152,6 +152,23 @@ func CommentList(c *gin.Context) {
 
 	// 类型转换
 	comments := make([]Comment, len(commentDTOs))
+
+	// commentDTOs转换为comments
+	for i := 0; i < len(commentDTOs); i++ {
+		comment := commentDTOs[i]
+		comments[i] = Comment{
+			Id: comment.ID,
+			User: User{
+				Id:            comment.User.ID,
+				Name:          comment.User.Name,
+				FollowCount:   comment.User.FollowCount,
+				FollowerCount: comment.User.FollowerCount,
+				IsFollow:      comment.User.IsFollow,
+			},
+			Content:    comment.CommentText,
+			CreateDate: comment.CreateDate.Format("01-02"),
+		}
+	}
 
 	// 返回结果
 	c.JSON(http.StatusOK, CommentListResponse{
