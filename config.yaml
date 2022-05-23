@@ -9,8 +9,8 @@ app:
 
 db:
   driver: mysql
-  host: fitenne.com
+  host: example.com
   port: 3306
   user: demo
-  pass: e7ad00af6067e49c
+  pass: secret
   database: dousheng
