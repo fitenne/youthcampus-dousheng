@@ -99,7 +99,7 @@ func (*userCtl) Create(name string, pass, salt []byte) (id int64, err error) {
 
 func (*userCtl) QueryCredentialsByName(name string) (id int64, hashed []byte, salt []byte, err error) {
 	user := make([]User, 0, 1)
-	res := dbProvider.GetDB().Select("password", "salt").Limit(1).Find(&user, "user_name = ?", name)
+	res := dbProvider.GetDB().Select("ID", "Password", "Salt").Limit(1).Find(&user, "user_name = ?", name)
 	if res.Error != nil {
 		return 0, nil, nil, res.Error
 	}
