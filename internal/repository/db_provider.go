@@ -29,7 +29,7 @@ type DBProvider interface {
 var dbProvider DBProvider
 var initOnce sync.Once
 
-// 连接到 DBConfig 制定的数据库，忽略 DBConfig 中的 Driver 字段
+// Connect 连接到 DBConfig 制定的数据库，忽略 DBConfig 中的 Driver 字段
 func (p *MysqlProdiver) Connect(c DBConfig) error {
 	err := errors.New("already connected")
 	p.connectOnce.Do(func() {
@@ -48,9 +48,9 @@ func (p *MysqlProdiver) GetDB() *gorm.DB {
 	return p.db
 }
 
-// 初始化数据库，只有第一次调用有效
+// Init 初始化数据库，只有第一次调用有效
 func Init(c DBConfig) error {
-	err := errors.New("Init called twice")
+	err := errors.New("DataBase Init called twice")
 	initOnce.Do(func() {
 		switch c.Driver {
 		case "mysql":
