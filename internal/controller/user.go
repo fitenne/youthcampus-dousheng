@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
+	"github.com/fitenne/youthcampus-dousheng/internal/common"
 	"github.com/fitenne/youthcampus-dousheng/internal/common/mid"
 	"github.com/fitenne/youthcampus-dousheng/internal/repository"
 	"github.com/fitenne/youthcampus-dousheng/internal/service"
@@ -100,7 +102,7 @@ func Register(c *gin.Context) {
 
 func Login(c *gin.Context) {
 	var loginReq LoginRequest
-	if err := c.BindQuery(&loginReq); err != nil {
+	if err := c.ShouldBindQuery(&loginReq); err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{
 				StatusCode: http.StatusBadRequest,
@@ -112,6 +114,15 @@ func Login(c *gin.Context) {
 
 	id, token, err := service.UserLogin(loginReq.Username, loginReq.Password)
 	if err != nil {
+		if errors.Is(err, common.ErrUserNotExists{}) {
+			c.JSON(http.StatusOK, UserLoginResponse{
+				Response: Response{
+					StatusCode: http.StatusUnauthorized,
+					StatusMsg:  "username password mismatch",
+				},
+			})
+		}
+
 		log.Print(err.Error())
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{
