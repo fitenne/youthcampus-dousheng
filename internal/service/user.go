@@ -39,7 +39,10 @@ func UserExists(username string) (bool, error) {
 func UserRegister(username, password string) (id int64, token string, err error) {
 	const saltSize = 32
 	salt := make([]byte, saltSize)
-	if n, err := rand.Reader.Read(salt); err != nil || n != saltSize {
+	if n, err := rand.Reader.Read(salt); err != nil {
+		if n != saltSize {
+			return 0, "", errors.New("filaed to generate salt")
+		}
 		return 0, "", err
 	}
 
@@ -71,8 +74,7 @@ func UserLogin(username, password string) (id int64, token string, err error) {
 		return 0, "", err
 	}
 
-	dgst := make([]byte, 0, 32)
-	dgst, err = getDgst(s, password)
+	dgst, err := getDgst(s, password)
 	if err != nil {
 		return 0, "", err
 	}
