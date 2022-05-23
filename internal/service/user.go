@@ -7,18 +7,22 @@ import (
 	"errors"
 	"log"
 
+	"github.com/fitenne/youthcampus-dousheng/internal/common"
 	"github.com/fitenne/youthcampus-dousheng/internal/common/jwt"
 	"github.com/fitenne/youthcampus-dousheng/internal/repository"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
 )
 
 func UserExists(username string) (bool, error) {
-	u, err := repository.GetUserCtl().QueryByName(username)
+	_, err := repository.GetUserCtl().QueryByName(username)
 	if err != nil {
+		if errors.Is(err, common.ErrUserNotExists{}) {
+			err = nil
+		}
 		return false, err
 	}
 
-	return u != model.User{}, nil
+	return true, nil
 }
 
 func UserRegister(username, password string) (id int64, token string, err error) {

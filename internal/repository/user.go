@@ -10,6 +10,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/fitenne/youthcampus-dousheng/internal/common"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
 	"gorm.io/gorm"
 )
@@ -36,7 +37,7 @@ func (User) TableName() string {
 	return "users"
 }
 
-func GetUserCtl() model.UserCtl {
+var GetUserCtl = func() model.UserCtl {
 	return &ctl
 }
 
@@ -46,7 +47,7 @@ func (ctl *userCtl) QueryByID(id int64) (model.User, error) {
 		return model.User{}, res.Error
 	}
 	if len(user) == 0 {
-		return model.User{}, errors.New("user not found")
+		return model.User{}, common.ErrUserNotExists{}
 	}
 
 	return model.User{
@@ -63,7 +64,7 @@ func (*userCtl) QueryByName(name string) (model.User, error) {
 		return model.User{}, res.Error
 	}
 	if len(user) == 0 {
-		return model.User{}, errors.New("user not found")
+		return model.User{}, common.ErrUserNotExists{}
 	}
 
 	return model.User{
@@ -103,7 +104,7 @@ func (*userCtl) QueryCredentialsByName(name string) (id int64, hashed []byte, sa
 		return 0, nil, nil, res.Error
 	}
 	if len(user) == 0 {
-		return 0, nil, nil, errors.New("user not exists")
+		return 0, nil, nil, common.ErrUserNotExists{}
 	}
 
 	return user[0].ID, user[0].Password, user[0].Salt, nil
