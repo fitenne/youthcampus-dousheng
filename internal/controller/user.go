@@ -4,9 +4,9 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/fitenne/youthcampus-dousheng/internal/common"
-	"github.com/fitenne/youthcampus-dousheng/internal/common/mid"
 	"github.com/fitenne/youthcampus-dousheng/internal/repository"
 	"github.com/fitenne/youthcampus-dousheng/internal/service"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
@@ -150,20 +150,31 @@ func Login(c *gin.Context) {
 }
 
 func UserInfo(c *gin.Context) {
-	id := c.GetInt64(mid.UserIDKey)
-	if id == 0 {
+	rid := c.Query("user_id")
+	id, err := strconv.Atoi(rid)
+	if rid == "" || err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{
-				StatusCode: http.StatusUnauthorized,
+				StatusCode: http.StatusBadRequest,
 				StatusMsg:  "invalid credentials",
 			},
 		})
 		return
 	}
 
-	u, err := repository.GetUserCtl().QueryByID(id)
+	u, err := repository.GetUserCtl().QueryByID(int64(id))
+	//! not implemented, is_follow = GetCtl().QueryFollow(me, id)
 	if err != nil {
-		log.Print(err.Error())
+		if errors.Is(err, common.ErrUserNotExists{}) {
+			c.JSON(http.StatusOK, UserLoginResponse{
+				Response: Response{
+					StatusCode: http.StatusBadRequest,
+					StatusMsg:  "invalid credentials",
+				},
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{
 				StatusCode: http.StatusInternalServerError,
