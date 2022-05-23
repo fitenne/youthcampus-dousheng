@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/fitenne/youthcampus-dousheng/internal/repository"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
+	"log"
 	"strconv"
 )
 
@@ -16,7 +17,12 @@ func Publish(videoId int64, comment *model.Comment) error {
 func DeleteById(userId, commentId int64) error {
 	comment, err := commentCtl.QueryById(commentId)
 	if err != nil {
+		log.Println(err.Error())
 		return errors.Unwrap(err)
+	}
+
+	if comment.User.ID == 0 {
+		return errors.New("指定id不存在记录")
 	}
 
 	if userId != comment.User.ID {

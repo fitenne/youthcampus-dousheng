@@ -2,6 +2,7 @@ package model_test
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/fitenne/youthcampus-dousheng/internal/common/settings"
@@ -27,7 +28,25 @@ func init() {
 func TestQueryListByVideoID(t *testing.T) {
 	t.Run("TestComment", func(t *testing.T) {
 		comCtl := repository.GetCommentCtl()
-		comments, _ := comCtl.QueryListByVideoId(1)
-		fmt.Println(comments)
+		comments, err := comCtl.QueryListByVideoId(1)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		for comment := range comments {
+			fmt.Println(comment)
+		}
+	})
+}
+
+func TestQueryById(t *testing.T) {
+	t.Run("TestComment", func(t *testing.T) {
+		comCtl := repository.GetCommentCtl()
+		comment, err := comCtl.QueryById(1)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		fmt.Println(comment)
 	})
 }

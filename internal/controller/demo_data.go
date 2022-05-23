@@ -24,7 +24,7 @@ var DemoComments = []Comment{
 var DemoUser = User{
 	Id:            1,
 	Name:          "TestUser",
-	FollowCount:   0,
-	FollowerCount: 0,
-	IsFollow:      false,
+	FollowCount:   10,
+	FollowerCount: 15,
+	IsFollow:      true,
 }

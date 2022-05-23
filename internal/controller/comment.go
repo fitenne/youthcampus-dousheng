@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -13,6 +14,11 @@ import (
 type CommentListResponse struct {
 	Response
 	CommentList []Comment `json:"comment_list,omitempty"`
+}
+
+type CommentActionResponse struct {
+	Response
+	Comment Comment `json:"comment,omitempty"`
 }
 
 // CommentAction no practical effect, just check if token is valid
@@ -41,14 +47,15 @@ func CommentAction(c *gin.Context) {
 	}
 
 	// 检查token
-	if _, exist := usersLoginInfo[params["token"]]; exist {
+	if user, exist := usersLoginInfo[params["token"]]; exist {
 
 		// userId 校验
 		userId, err := strconv.ParseInt(userIdQuery, 10, 64)
 		if err != nil {
+			log.Println("CommentAction: userId 转换异常" + err.Error())
 			c.JSON(http.StatusOK, Response{
 				StatusCode: 2,
-				StatusMsg:  "Invalid param <comment_id>: " + userIdQuery,
+				StatusMsg:  "Invalid param <user_id>: " + userIdQuery,
 			})
 			return
 		}
@@ -61,9 +68,10 @@ func CommentAction(c *gin.Context) {
 			// videoId 校验
 			videoId, err := strconv.ParseInt(videoIdQuery, 10, 64)
 			if err != nil {
+				log.Println("CommentAction: videoId 转换异常" + err.Error())
 				c.JSON(http.StatusOK, Response{
 					StatusCode: 2,
-					StatusMsg:  "Invalid param <comment_id>: " + videoIdQuery,
+					StatusMsg:  "Invalid param <comment_id>: " + videoIdQuery + err.Error(),
 				})
 				return
 			}
@@ -71,14 +79,36 @@ func CommentAction(c *gin.Context) {
 			// 获取评论内容
 			commentText := c.DefaultQuery("comment_text", "")
 
-			// 调用发布接口
-			serverErr = service.Publish(videoId, &model.Comment{
+			comment := model.Comment{
 				User: model.User{
 					ID: userId,
 				},
 				CommentText: commentText,
 				CreateDate:  time.Now(),
-			})
+			}
+
+			// 调用发布接口
+			serverErr = service.Publish(videoId, &comment)
+
+			// 异常分支处理：操作异常
+			if serverErr != nil {
+				log.Println("CommentAction: publish 流程异常" + serverErr.Error())
+				c.JSON(http.StatusOK, Response{
+					StatusCode: 3,
+					StatusMsg:  "error " + serverErr.Error(),
+				})
+				return
+			}
+
+			// 返回结果
+			c.JSON(http.StatusOK, CommentActionResponse{Response: Response{StatusCode: 0},
+				Comment: Comment{
+					Id:         comment.ID,
+					User:       user,
+					Content:    comment.CommentText,
+					CreateDate: comment.CreateDate.Format("01-02"),
+				}})
+			return
 
 		case "2": // 删除评论
 
@@ -88,6 +118,7 @@ func CommentAction(c *gin.Context) {
 			// 参数处理
 			commentId, err := strconv.ParseInt(commentIdQuery, 10, 64)
 			if err != nil {
+				log.Println("CommentAction: commentId 转换异常" + err.Error())
 				c.JSON(http.StatusOK, Response{
 					StatusCode: 2,
 					StatusMsg:  "Invalid param <comment_id>: " + commentIdQuery,
@@ -98,6 +129,20 @@ func CommentAction(c *gin.Context) {
 			// 调用删除接口
 			serverErr = service.DeleteById(userId, commentId)
 
+			// 异常分支处理：操作异常
+			if serverErr != nil {
+				log.Println("CommentAction: delete 流程异常" + serverErr.Error())
+				c.JSON(http.StatusOK, Response{
+					StatusCode: 3,
+					StatusMsg:  "error " + serverErr.Error(),
+				})
+				return
+			}
+
+			// 正常返回
+			c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "success"})
+			return
+
 		default: // 异常分支处理，操作类型异常
 			c.JSON(http.StatusOK, Response{
 				StatusCode: 2,
@@ -106,17 +151,6 @@ func CommentAction(c *gin.Context) {
 			return
 		}
 
-		// 异常分支处理：操作异常
-		if serverErr != nil {
-			c.JSON(http.StatusOK, Response{
-				StatusCode: 3,
-				StatusMsg:  "error " + serverErr.Error(),
-			})
-			return
-		}
-
-		// 正常返回
-		c.JSON(http.StatusOK, Response{StatusCode: 0})
 	} else {
 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 	}
@@ -131,6 +165,7 @@ func CommentList(c *gin.Context) {
 	// 参数处理
 	videoId, err := strconv.ParseInt(videoIdQuery, 10, 64)
 	if err != nil {
+		log.Println("CommentList: videoId 转换异常" + err.Error())
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 2,
 			StatusMsg:  "Invalid param <video_id>: " + videoIdQuery,
@@ -143,6 +178,7 @@ func CommentList(c *gin.Context) {
 
 	// 异常分支处理：操作异常
 	if err != nil {
+		log.Println("CommentList: 函数流程异常" + err.Error())
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 3,
 			StatusMsg:  "server error " + err.Error(),
@@ -173,6 +209,6 @@ func CommentList(c *gin.Context) {
 	// 返回结果
 	c.JSON(http.StatusOK, CommentListResponse{
 		Response:    Response{StatusCode: 0},
-		CommentList: comments,
+		CommentList: DemoComments,
 	})
 }
