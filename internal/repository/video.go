@@ -3,10 +3,8 @@ package repository
 // VideoRepository interface
 
 import (
-	"errors"
 	errorcode "github.com/fitenne/youthcampus-dousheng/internal/common/error"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
-	"gorm.io/gorm"
 	"time"
 )
 
@@ -14,10 +12,8 @@ type videoCtl struct {
 }
 
 var vctl videoCtl
-var db *gorm.DB
 
 func GetVideoCtl() model.VideoCtl {
-	db = dbProvider.GetDB()
 	return &vctl
 }
 
@@ -25,7 +21,7 @@ func (v *videoCtl) Create(video *model.Video) (int64, error) {
 	if video.Author != nil {
 		//authorID和author.ID要一致
 		if video.AuthorID != 0 && video.AuthorID != video.Author.ID {
-			return 0, errors.New(errorcode.VideoCreateForeignKeyNotUnified.Message())
+			return 0, errorcode.VideoCreateForeignKeyNotUnified
 		}
 		video.AuthorID = video.Author.ID
 		video.Author = nil

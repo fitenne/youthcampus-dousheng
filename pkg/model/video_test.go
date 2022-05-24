@@ -1,6 +1,7 @@
 package model_test
 
 import (
+	"errors"
 	errorcode "github.com/fitenne/youthcampus-dousheng/internal/common/error"
 	"github.com/fitenne/youthcampus-dousheng/internal/common/settings"
 	"github.com/fitenne/youthcampus-dousheng/internal/repository"
@@ -61,7 +62,7 @@ func TestVideoCreate2(t *testing.T) {
 	if err == nil {
 		t.Error("'创建视频时，authorID、author.ID不统一'测试用例失败")
 	} else {
-		if err.Error() == errorcode.VideoCreateForeignKeyNotUnified.Message() {
+		if errors.Is(err, errorcode.VideoCreateForeignKeyNotUnified) {
 			t.Log("'创建视频时，authorID、author.ID不统一'测试用例通过")
 		} else {
 			t.Error(err)
@@ -86,7 +87,7 @@ func TestVideoCreate3(t *testing.T) {
 	if err == nil {
 		t.Error("'创建视频时，authorID不存在'测试用例失败")
 	} else {
-		if err.Error() == errorcode.VideoCreateForeignKeyNotExist.Message() {
+		if errors.Is(err, errorcode.VideoCreateForeignKeyNotExist) {
 			t.Log("'创建视频时，authorID不存在'测试用例通过")
 		} else {
 			t.Error(err)

@@ -47,8 +47,8 @@ const (
 	VideoCreateForeignKeyNotExist
 )
 
-// 错误码对应的错误信息
-func (e ErrorCode) Message() string {
+// 实现Error接口
+func (e ErrorCode) Error() string {
 	switch e {
 	case Success:
 		return "success"
