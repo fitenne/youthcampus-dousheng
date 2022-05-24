@@ -209,6 +209,6 @@ func CommentList(c *gin.Context) {
 	// 返回结果
 	c.JSON(http.StatusOK, CommentListResponse{
 		Response:    Response{StatusCode: 0},
-		CommentList: DemoComments,
+		CommentList: comments,
 	})
 }
