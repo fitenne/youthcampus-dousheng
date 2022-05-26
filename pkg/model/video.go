@@ -12,7 +12,7 @@ type Video struct {
 	DeletedAt     gorm.DeletedAt `json:"-" gorm:"index;comment:删除标记位;unique_index:create_time_index"`
 
 	//作者
-	Author   User  `json:"author" gorm:"ForeignKey:AuthorID;AssociationForeignKey:Id"`
+	Author   *User `json:"author" gorm:"ForeignKey:AuthorID;AssociationForeignKey:Id"`
 	AuthorID int64 `json:"-" gorm:"not null;comment:作者id;unique_index:create_time_index"`
 
 	//是否点赞

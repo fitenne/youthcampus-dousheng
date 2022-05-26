@@ -95,7 +95,7 @@ func (favoriteCtl *FavoriteCtl) FavoriteVideoList(userId int64) ([]model.Video, 
 	var videolistEntitis []model.Video
 
 	// err := dbProvider.GetDB().Joins("JOIN favorites ON favorites.videoid = videos.id AND favorites.userid = ?", userId).Find(&videolist).Error
-	err := dbProvider.GetDB().Joins("JOIN favorites ON favorites.video_id = videos.id AND favorites.user_id = ?", userId).Find(&videolistEntitis).Error
+	err := dbProvider.GetDB().Preload("Author").Joins("JOIN favorites ON favorites.video_id = videos.id AND favorites.user_id = ?", userId).Find(&videolistEntitis).Error
 
 	// videos := make([]model.Video, len(videolistEntitis))
 	// for i := 0; i < len(videolistEntitis); i++ {
