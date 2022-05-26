@@ -16,3 +16,10 @@ func DeleteFavoriteAction(userId int64, videoId int64, newfavorite *model.Favori
 func CheckRepeatFavorite(userId int64, videoId int64, newfavorite *model.Favorite) bool {
 	return favoriteCtl.CheckRepeatFavorite(userId, videoId, newfavorite)
 }
+
+func FavoriteVideoList(userId int64) ([]model.Video, error) {
+	return favoriteCtl.FavoriteVideoList(userId)
+}
+func CreateTableTest() error {
+	return favoriteCtl.CreateTableTest()
+}

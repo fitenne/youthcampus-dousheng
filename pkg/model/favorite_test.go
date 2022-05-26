@@ -1,12 +1,12 @@
 package model_test
 
 import (
-	"fmt"
-	"log"
+	// "log"
 	"testing"
 
 	"github.com/fitenne/youthcampus-dousheng/internal/common/settings"
 	"github.com/fitenne/youthcampus-dousheng/internal/repository"
+	// "github.com/fitenne/youthcampus-dousheng/pkg/model"
 	"github.com/spf13/viper"
 )
 
@@ -25,29 +25,9 @@ func init() {
 	})
 }
 
-func TestCreateFavoriteAction(t *testing.T) {
-	t.Run("TestCreateFavorite", func(t *testing.T) {
-		favCtl := repository.GetFavoriteCtl()
-		comments, err := comCtl.QueryListByVideoId(1)
-		if err != nil {
-			log.Println(err)
-			return
-		}
+func TestCreateTable(t *testing.T) {
+	t.Run("TestCreateTable", func(t *testing.T) {
 
-		for comment := range comments {
-			fmt.Println(comment)
-		}
-	})
-}
-
-func TestQueryById(t *testing.T) {
-	t.Run("TestComment", func(t *testing.T) {
-		comCtl := repository.GetCommentCtl()
-		comment, err := comCtl.QueryById(1)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		fmt.Println(comment)
+		repository.GetFavoriteCtl().CreateTableTest()
 	})
 }

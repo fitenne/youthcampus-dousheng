@@ -7,6 +7,14 @@ app:
   name: dousheng
   secret: going小分队
 
+# db:
+#   driver: mysql
+#   host: localhost
+#   port: 3306
+#   user: root
+#   pass: teg
+#   database: doushenglocal
+
 db:
   driver: mysql
   host: fitenne.com
