@@ -29,6 +29,9 @@ type DBProvider interface {
 var dbProvider DBProvider
 var initOnce sync.Once
 
+//可以在db_provider.go定义这个变量，顺带在init函数初始化db
+var db *gorm.DB
+
 // 连接到 DBConfig 制定的数据库，忽略 DBConfig 中的 Driver 字段
 func (p *MysqlProdiver) Connect(c DBConfig) error {
 	err := errors.New("already connected")
@@ -62,7 +65,14 @@ func Init(c DBConfig) error {
 		if err != nil {
 			return
 		}
-
+		//在init中顺便对db进行了初始化
+		db = dbProvider.GetDB()
+		//创建表video
+		//if !db.Migrator().HasTable(&model.Video{}) {
+		//	if err := db.Set("gorm:table_options", "ENGINE=InnoDB").Migrator().CreateTable(model.Video{}).Error; err != nil {
+		//		panic(err)
+		//	}
+		//}
 		err = nil
 	})
 	return err
