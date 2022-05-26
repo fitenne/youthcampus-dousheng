@@ -94,22 +94,20 @@ func (favoriteCtl *FavoriteCtl) CheckRepeatFavorite(userId int64, videoId int64,
 func (favoriteCtl *FavoriteCtl) FavoriteVideoList(userId int64) ([]model.Video, error) {
 	var videolistEntitis []model.Video
 
-	// err := dbProvider.GetDB().Joins("JOIN favorites ON favorites.videoid = videos.id AND favorites.userid = ?", userId).Find(&videolist).Error
 	err := dbProvider.GetDB().Preload("Author").Joins("JOIN favorites ON favorites.video_id = videos.id AND favorites.user_id = ?", userId).Find(&videolistEntitis).Error
 
-	// videos := make([]model.Video, len(videolistEntitis))
-	// for i := 0; i < len(videolistEntitis); i++ {
-	// 	video := videolistEntitis[i]
-	// 	videos[i] = model.Video{
-	// 		ID: video.ID,
-	// 		Author: model.User{
-	// 			ID:            video.Author.ID,
-	// 			Name:          video.Author.Name,
-	// 			FollowCount:   video.Author.FollowCount,
-	// 			FollowerCount: video.Author.FollowerCount,
-	// 		},
-	// 	}
-	// }
+	for i := 0; i < len(videolistEntitis); i++ {
+
+		isFollow, err := GetDealerFollow().CheckHasFollowed(int(userId), int(videolistEntitis[i].Author.ID))
+		if isFollow {
+			videolistEntitis[i].Author.IsFollow = isFollow
+		} else {
+			videolistEntitis[i].Author.IsFollow = false
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
 	return videolistEntitis, err
 }
 

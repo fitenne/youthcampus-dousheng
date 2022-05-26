@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"fmt"
+	// "fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -170,36 +170,36 @@ func FavoriteList(c *gin.Context) {
 		return
 	}
 
-	// 类型转换
-	videos := make([]Video, len(VideoListDTOs))
+	// // 类型转换
+	// videos := make([]Video, len(VideoListDTOs))
 
-	// VideoListDTOs转换为videos
-	for i := 0; i < len(VideoListDTOs); i++ {
-		video := VideoListDTOs[i]
-		fmt.Println(video)
-		videos[i] = Video{
-			Id: video.ID,
-			// 在User赋值这里会有空指针问题,如果把model.video的Author*改为Author就跑通了
-			Author: User{
-				Id:            video.Author.ID,
-				Name:          video.Author.Name,
-				FollowCount:   video.Author.FollowCount,
-				FollowerCount: video.Author.FollowerCount,
-				IsFollow:      video.Author.IsFollow,
-			},
+	// // VideoListDTOs转换为videos
+	// for i := 0; i < len(VideoListDTOs); i++ {
+	// 	video := VideoListDTOs[i]
+	// 	fmt.Println(video)
+	// 	videos[i] = Video{
+	// 		Id: video.ID,
+	// 		// 在User赋值这里会有空指针问题,如果把model.video的Author*改为Author就跑通了
+	// 		Author: User{
+	// 			Id:            video.Author.ID,
+	// 			Name:          video.Author.Name,
+	// 			FollowCount:   video.Author.FollowCount,
+	// 			FollowerCount: video.Author.FollowerCount,
+	// 			IsFollow:      video.Author.IsFollow,
+	// 		},
 
-			PlayUrl:       video.PlayUrl,
-			CoverUrl:      video.CoverUrl,
-			FavoriteCount: video.FavoriteCount,
-			CommentCount:  video.CommentCount,
-			IsFavorite:    true,
-		}
-	}
+	// 		PlayUrl:       video.PlayUrl,
+	// 		CoverUrl:      video.CoverUrl,
+	// 		FavoriteCount: video.FavoriteCount,
+	// 		CommentCount:  video.CommentCount,
+	// 		IsFavorite:    true,
+	// 	}
+	// }
 
 	// 返回结果
 	c.JSON(http.StatusOK, VideoListResponse{
 		Response:  Response{StatusCode: 0, StatusMsg: "点赞视频列表"},
-		VideoList: videos,
+		VideoList: VideoListDTOs,
 	})
 
 }
