@@ -36,10 +36,6 @@ type CommentCtl interface {
 
 	// DeleteById 删除接口
 	DeleteById(commentId int64) error
-
-	// QueryById 单个查询接口
 	QueryById(commentId int64) (*Comment, error)
-
-	// QueryListByVideoId 列表查询
 	QueryListByVideoId(videoId int64) ([]Comment, error)
 }

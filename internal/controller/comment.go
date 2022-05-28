@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"github.com/fitenne/youthcampus-dousheng/internal/common/jwt"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/fitenne/youthcampus-dousheng/internal/common/jwt"
 
 	"github.com/fitenne/youthcampus-dousheng/internal/service"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
