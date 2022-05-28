@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/fitenne/youthcampus-dousheng/internal/common/jwt"
+	"github.com/fitenne/youthcampus-dousheng/internal/controller"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,9 +22,9 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			token = c.PostForm("token")
 		}
 		if token == "" {
-			c.JSON(http.StatusOK, gin.H{
-				"status_code": "-1",
-				"status_msg":  "未获取到token，请登录后再操作",
+			c.JSON(http.StatusOK, controller.Response{
+				StatusCode: http.StatusUnauthorized,
+				StatusMsg:  "invalid token",
 			})
 			c.Abort()
 			return
@@ -31,9 +32,9 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 		// parts[1]是获取到的tokenString，我们使用之前定义好的解析JWT的函数来解析它
 		mc, err := jwt.ParseToken(token)
 		if err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"status_code": "-1",
-				"status_msg":  "无效token，请登陆后再重试",
+			c.JSON(http.StatusOK, controller.Response{
+				StatusCode: http.StatusUnauthorized,
+				StatusMsg:  "invalid token",
 			})
 			c.Abort()
 			return
