@@ -104,7 +104,7 @@ func CommentAction(c *gin.Context) {
 			c.JSON(http.StatusOK, CommentActionResponse{Response: Response{StatusCode: 0},
 				Comment: Comment{
 					Id:         comment.ID,
-					User:       user,
+					User:       model.User{ID: user.Id, Name: user.Name, FollowCount: user.FollowCount,  FollowerCount: user.FollowerCount, IsFollow: user.IsFollow},
 					Content:    comment.CommentText,
 					CreateDate: comment.CreateDate.Format("01-02"),
 				}})
@@ -194,8 +194,8 @@ func CommentList(c *gin.Context) {
 		comment := commentDTOs[i]
 		comments[i] = Comment{
 			Id: comment.ID,
-			User: User{
-				Id:            comment.User.ID,
+			User: model.User{
+				ID:            comment.User.ID,
 				Name:          comment.User.Name,
 				FollowCount:   comment.User.FollowCount,
 				FollowerCount: comment.User.FollowerCount,

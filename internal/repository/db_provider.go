@@ -67,7 +67,21 @@ func Init(c DBConfig) error {
 		}
 		//在init中顺便对db进行了初始化
 		db = dbProvider.GetDB()
-		//创建表video
+		// 创建表user
+		//if !db.Migrator().HasTable(&model.User{}) {
+		//	if err := db.AutoMigrate(new(model.User)).Error; err != nil {
+		//		panic(err)
+		//	}
+		//}
+		// 创建表video
+		//if !db.Migrator().HasTable(&model.Video{}) {
+		//	if err := db.AutoMigrate(new(model.Video)).Error; err != nil {
+		//		panic(err)
+		//	}
+		//}
+
+
+		//// 创建表video
 		//if !db.Migrator().HasTable(&model.Video{}) {
 		//	if err := db.Set("gorm:table_options", "ENGINE=InnoDB").Migrator().CreateTable(model.Video{}).Error; err != nil {
 		//		panic(err)
