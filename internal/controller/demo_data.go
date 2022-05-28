@@ -1,6 +1,8 @@
 package controller
 
-import "github.com/fitenne/youthcampus-dousheng/pkg/model"
+import (
+	"github.com/fitenne/youthcampus-dousheng/pkg/model"
+)
 
 var DemoVideos = []model.Video{
 	{
@@ -12,6 +14,15 @@ var DemoVideos = []model.Video{
 		CommentCount:  0,
 		IsFavorite:    false,
 	},
+}
+
+var DemoComments = []model.Comment{
+	// {
+	// 	ID:          1,
+	// 	User:        DemoUser,
+	// 	CommentText: "Test Comment",
+	// 	CreateDate:  time.Date(2022, 5, 5, 12, 0, 0, 0, time.UTC),
+	// },
 }
 
 var DemoUser = model.User{
