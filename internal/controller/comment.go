@@ -47,7 +47,7 @@ func CommentAction(c *gin.Context) {
 	}
 
 	// 检查token
-	if user, exist := usersLoginInfo[params["token"]]; exist {
+	if _, exist := usersLoginInfo[params["token"]]; exist {
 
 		// userId 校验
 		userId, err := strconv.ParseInt(userIdQuery, 10, 64)
@@ -103,8 +103,10 @@ func CommentAction(c *gin.Context) {
 			// 返回结果
 			c.JSON(http.StatusOK, CommentActionResponse{Response: Response{StatusCode: 0},
 				Comment: Comment{
-					Id:         comment.ID,
-					User:       model.User{ID: user.Id, Name: user.Name, FollowCount: user.FollowCount,  FollowerCount: user.FollowerCount, IsFollow: user.IsFollow},
+					Id: comment.ID,
+					User: model.User{
+						ID: userId,
+					},
 					Content:    comment.CommentText,
 					CreateDate: comment.CreateDate.Format("01-02"),
 				}})

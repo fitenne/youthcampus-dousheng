@@ -3,10 +3,13 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"sync"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type DBConfig struct {
@@ -14,6 +17,7 @@ type DBConfig struct {
 	Host, Port     string
 	User, Password string
 	DBname         string
+	LogLevel       int
 }
 
 type MysqlProdiver struct {
@@ -42,7 +46,11 @@ func (p *MysqlProdiver) Connect(c DBConfig) error {
 			DriverName: "mysql",
 			DSN:        dsn,
 		})
-		p.db, err = gorm.Open(dialector)
+		p.db, err = gorm.Open(dialector, &gorm.Config{
+			Logger: logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+				LogLevel: logger.LogLevel(c.LogLevel),
+			}),
+		})
 	})
 	return err
 }
