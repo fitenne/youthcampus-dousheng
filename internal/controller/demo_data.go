@@ -1,6 +1,9 @@
 package controller
 
-import "github.com/fitenne/youthcampus-dousheng/pkg/model"
+import (
+	"github.com/fitenne/youthcampus-dousheng/pkg/model"
+	"time"
+)
 
 var DemoVideos = []model.Video{
 	{
@@ -14,12 +17,12 @@ var DemoVideos = []model.Video{
 	},
 }
 
-var DemoComments = []Comment{
+var DemoComments = []model.Comment{
 	{
-		Id:         1,
-		User:       DemoUser,
-		Content:    "Test Comment",
-		CreateDate: "05-01",
+		ID:          1,
+		User:        DemoUser,
+		CommentText: "Test Comment",
+		CreateDate:  time.Date(2022, 5, 5, 12, 0, 0, 0, time.UTC),
 	},
 }
 

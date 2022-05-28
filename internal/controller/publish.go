@@ -2,8 +2,10 @@ package controller
 
 import (
 	"fmt"
+	"github.com/fitenne/youthcampus-dousheng/internal/common/jwt"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"path/filepath"
 )
@@ -17,7 +19,12 @@ type VideoListResponse struct {
 func Publish(c *gin.Context) {
 	token := c.PostForm("token")
 
-	if _, exist := usersLoginInfo[token]; !exist {
+	//if _, exist := usersLoginInfo[token]; !exist {
+	//	c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+	//	return
+	//}
+
+	if _, exist := jwt.ParseToken(token); exist != nil {
 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 		return
 	}
@@ -43,6 +50,7 @@ func Publish(c *gin.Context) {
 		return
 	}
 
+	log.Println(finalName + " uploaded successfully")
 	c.JSON(http.StatusOK, Response{
 		StatusCode: 0,
 		StatusMsg:  finalName + " uploaded successfully",
