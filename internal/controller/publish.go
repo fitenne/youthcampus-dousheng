@@ -17,18 +17,19 @@ type VideoListResponse struct {
 
 // Publish check token then save upload file to public directory
 func Publish(c *gin.Context) {
+	// 判断用户是否存在
 	token := c.PostForm("token")
-
 	//if _, exist := usersLoginInfo[token]; !exist {
 	//	c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 	//	return
 	//}
-
-	if _, exist := jwt.ParseToken(token); exist != nil {
+	myClaims, exist := jwt.ParseToken(token)
+	if exist != nil {
 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 		return
 	}
 
+	//
 	data, err := c.FormFile("data")
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
@@ -39,8 +40,10 @@ func Publish(c *gin.Context) {
 	}
 
 	filename := filepath.Base(data.Filename)
-	user := usersLoginInfo[token]
-	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
+	log.Println("publish func, filename:", filename)
+	// user := usersLoginInfo[token]
+	// finalName := fmt.Sprintf("%d_%s", user.Id, filename)
+	finalName := fmt.Sprintf("%d_%s", myClaims.UserID, filename)
 	saveFile := filepath.Join("./public/", finalName)
 	if err := c.SaveUploadedFile(data, saveFile); err != nil {
 		c.JSON(http.StatusOK, Response{
