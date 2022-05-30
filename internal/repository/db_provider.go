@@ -3,10 +3,13 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"sync"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type DBConfig struct {
@@ -14,6 +17,7 @@ type DBConfig struct {
 	Host, Port     string
 	User, Password string
 	DBname         string
+	LogLevel       int
 }
 
 type MysqlProdiver struct {
@@ -29,7 +33,10 @@ type DBProvider interface {
 var dbProvider DBProvider
 var initOnce sync.Once
 
-// Connect 连接到 DBConfig 制定的数据库，忽略 DBConfig 中的 Driver 字段
+//可以在db_provider.go定义这个变量，顺带在init函数初始化db
+var db *gorm.DB
+
+// 连接到 DBConfig 制定的数据库，忽略 DBConfig 中的 Driver 字段
 func (p *MysqlProdiver) Connect(c DBConfig) error {
 	err := errors.New("already connected")
 	p.connectOnce.Do(func() {
@@ -39,7 +46,11 @@ func (p *MysqlProdiver) Connect(c DBConfig) error {
 			DriverName: "mysql",
 			DSN:        dsn,
 		})
-		p.db, err = gorm.Open(dialector)
+		p.db, err = gorm.Open(dialector, &gorm.Config{
+			Logger: logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+				LogLevel: logger.LogLevel(c.LogLevel),
+			}),
+		})
 	})
 	return err
 }
@@ -48,9 +59,9 @@ func (p *MysqlProdiver) GetDB() *gorm.DB {
 	return p.db
 }
 
-// Init 初始化数据库，只有第一次调用有效
+// 初始化数据库，只有第一次调用有效
 func Init(c DBConfig) error {
-	err := errors.New("DataBase Init called twice")
+	err := errors.New("Init called twice")
 	initOnce.Do(func() {
 		switch c.Driver {
 		case "mysql":
@@ -62,7 +73,14 @@ func Init(c DBConfig) error {
 		if err != nil {
 			return
 		}
-
+		//在init中顺便对db进行了初始化
+		db = dbProvider.GetDB()
+		//创建表video
+		//if !db.Migrator().HasTable(&model.Video{}) {
+		//	if err := db.Set("gorm:table_options", "ENGINE=InnoDB").Migrator().CreateTable(model.Video{}).Error; err != nil {
+		//		panic(err)
+		//	}
+		//}
 		err = nil
 	})
 	return err
