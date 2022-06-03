@@ -37,6 +37,7 @@ func TestVideoCreate1(t *testing.T) {
 			FollowCount:   0,
 			FollowerCount: 0,
 		},
+		Title: "title1",
 	}
 	id, err := repository.GetVideoCtl().Create(video)
 	if err != nil {
@@ -119,4 +120,13 @@ func TestVideoGet1(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(video)
+}
+
+//GetVideoList测试一：正常查询视频列表
+func TestVideoGetList1(t *testing.T) {
+	videos, err := repository.GetVideoCtl().GetVideoList(0, 30)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(videos)
 }

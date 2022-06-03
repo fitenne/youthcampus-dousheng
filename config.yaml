@@ -9,9 +9,11 @@ app:
 
 db:
   driver: mysql
-  host: example.com
+  #  host: example.com
+  host: fitenne.com
   port: 3306
   user: demo
-  pass: secret
+  #  pass: secret
+  pass: e7ad00af6067e49c
   database: dousheng
-  loglevel: 1 # 1,2,3,4 对应 slient error warn info
+  loglevel: 4 # 1,2,3,4 对应 slient error warn info

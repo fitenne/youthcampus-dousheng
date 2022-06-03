@@ -7,15 +7,15 @@ type Video struct {
 	AuthorID      int64          `json:"-" gorm:"not null;comment:作者id;unique_index:create_time_index"`
 	PlayUrl       string         `json:"play_url,omitempty" gorm:"size:50;not null;comment:短视频url;unique_index:create_time_index"`
 	CoverUrl      string         `json:"cover_url,omitempty" gorm:"size:50;not null;comment:封面url;unique_index:create_time_index"`
-	FavoriteCount int64          `json:"favorite_count,omitempty" gorm:"not null;default:0;comment:点赞数;unique_index:create_time_index"`
-	CommentCount  int64          `json:"comment_count,omitempty" gorm:"not null;default:0;comment:评论数;unique_index:create_time_index"`
-	CreatedAt     int            `json:"created_at" gorm:"comment:投递时间;unique_index:create_time_index;not null"`
+	FavoriteCount int64          `json:"favorite_count" gorm:"not null;default:0;comment:点赞数;unique_index:create_time_index"`
+	CommentCount  int64          `json:"comment_count" gorm:"not null;default:0;comment:评论数;unique_index:create_time_index"`
+	CreatedAt     int            `json:"-" gorm:"comment:投递时间;unique_index:create_time_index;not null"`
 	DeletedAt     gorm.DeletedAt `json:"-" gorm:"index;comment:删除标记位;unique_index:create_time_index"`
-
+	Title         string         `json:"title" gorm:"size:50;not null;comment:标题;unique_index:create_time_index"`
 	//作者
 	Author *User `json:"author" gorm:"ForeignKey:AuthorID;"`
 	//是否点赞
-	IsFavorite bool `json:"is_favorite,omitempty" gorm:"-"`
+	IsFavorite bool `json:"is_favorite" gorm:"-"`
 }
 
 // Video表 CRUD

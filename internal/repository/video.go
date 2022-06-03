@@ -46,7 +46,7 @@ func (v *videoCtl) GetVideoList(latestTime int64, size int) ([]*model.Video, err
 		latestTime = time.Now().Unix()
 	}
 	var videos []*model.Video
-	err := db.Preload("Author").Where("create_at < ?", latestTime).Order("create_at desc").Limit(size).Find(&videos).Error
+	err := db.Preload("Author").Where("created_at < ?", latestTime).Order("created_at desc").Limit(size).Find(&videos).Error
 	return videos, err
 }
 
@@ -59,13 +59,13 @@ func (v *videoCtl) GetVideoById(id int) (*model.Video, error) {
 
 func (v *videoCtl) GetVideoByAuthorId(authorID int) ([]*model.Video, error) {
 	var videos []*model.Video
-	err := db.Preload("Author").Where("author_id = ?", authorID).Order("create_at desc").Find(&videos).Error
+	err := db.Preload("Author").Where("author_id = ?", authorID).Order("created_at desc").Find(&videos).Error
 	return videos, err
 }
 
 func (v *videoCtl) FindAllByCreateAt() ([]*model.Video, error) {
 	var videos []*model.Video
-	err := db.Preload("Author").Order("create_at desc").Find(&videos).Error
+	err := db.Preload("Author").Order("created_at desc").Find(&videos).Error
 	return videos, err
 }
 

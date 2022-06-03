@@ -15,6 +15,9 @@ func Feed(user_id, latest int64) ([]*model.Video, int64, error) {
 		return nil, 0, errors.New("无video")
 	}
 	next_time := videos[len(videos)-1].CreatedAt
-	//TODO: 检查是否已经被收藏
+	//给videos的IsFavorite赋值
+	for _, v := range videos {
+		v.IsFavorite = repository.GetFavoriteCtl().CheckRepeatFavorite(user_id, v.ID, &model.Favorite{})
+	}
 	return videos, int64(next_time), nil
 }

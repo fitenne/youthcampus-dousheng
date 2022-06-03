@@ -3,13 +3,13 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"gorm.io/gorm/logger"
 	"log"
 	"os"
 	"sync"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type DBConfig struct {
@@ -50,6 +50,7 @@ func (p *MysqlProdiver) Connect(c DBConfig) error {
 			Logger: logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
 				LogLevel: logger.LogLevel(c.LogLevel),
 			}),
+			//Logger: logger.Default.LogMode(logger.Info),
 		})
 	})
 	return err
