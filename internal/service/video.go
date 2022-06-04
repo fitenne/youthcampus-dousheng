@@ -7,14 +7,14 @@ import (
 	"mime/multipart"
 )
 
-func VideoPublish(c *gin.Context, data *multipart.FileHeader, playUrl string, authorID int64) (int64,  error ){
+func PublishVideo(c *gin.Context, data *multipart.FileHeader, playUrl string, authorID int64) (int64,  error ){
 
 	// 存储视频文件
 	if err := c.SaveUploadedFile(data, playUrl); err != nil {
 		return -1, err
 	}
 
-	// 写入数据库
+	// video 信息写入数据库
 	video := &model.Video{
 		AuthorID: authorID,
 		PlayUrl:  playUrl,
@@ -32,4 +32,13 @@ func VideoPublish(c *gin.Context, data *multipart.FileHeader, playUrl string, au
 	}
 
 	return videoId, nil
+}
+
+
+func GetVideos(authorID int64) ([]*model.Video, error) {
+	videos, err := repository.GetVideoCtl().GetVideoByAuthorId(int(authorID))
+	if err != nil{
+		return nil, err
+	}
+	return videos, nil
 }
