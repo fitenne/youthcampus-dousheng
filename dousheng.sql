@@ -46,8 +46,8 @@ DROP TABLE IF EXISTS `videos`;
 CREATE TABLE `videos`  (
    `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '短视频id',
    `author_id` bigint NOT NULL COMMENT '作者id',
-   `play_url` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '短视频url',
-   `cover_url` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '封面url',
+   `play_url` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '短视频url',
+   `cover_url` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '封面url',
    `favorite_count` bigint NOT NULL DEFAULT 0 COMMENT '点赞数',
    `comment_count` bigint NOT NULL DEFAULT 0 COMMENT '评论数',
    `created_at` bigint NOT NULL COMMENT '投递时间',

@@ -59,7 +59,7 @@ func (v *videoCtl) GetVideoById(id int) (*model.Video, error) {
 
 func (v *videoCtl) GetVideoByAuthorId(authorID int) ([]*model.Video, error) {
 	var videos []*model.Video
-	err := db.Preload("Author").Where("author_id = ?", authorID).Order("create_at desc").Find(&videos).Error
+	err := db.Preload("Author").Where("author_id = ?", authorID).Order("created_at desc").Find(&videos).Error
 	return videos, err
 }
 
