@@ -53,6 +53,9 @@ func RelationAction(c *gin.Context) {
 		}
 		StatusResponse(c, 0, code.Success.Msg())
 		return
+	} else {
+		StatusResponse(c, -1, code.InvalidParameter.Msg())
+		return
 	}
 }
 
@@ -65,7 +68,7 @@ func FollowList(c *gin.Context) {
 	}
 	userList, err := service.GetFollowList(userID)
 	if err != nil {
-		StatusResponse(c, -1, code.ServeBusy.Msg())
+		StatusResponse(c, -1, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, UserListResponse{
@@ -86,7 +89,7 @@ func FollowerList(c *gin.Context) {
 	}
 	userList, err := service.GetFollowerList(userID)
 	if err != nil {
-		StatusResponse(c, -1, code.ServeBusy.Msg())
+		StatusResponse(c, -1, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, UserListResponse{
