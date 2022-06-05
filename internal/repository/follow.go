@@ -25,46 +25,11 @@ type FollowCtl interface {
 	CancelFollowUser(userID int64, ToUserID int64) error
 	SelectAllFollower(userID int64) (*[]int64, error) //查询所有粉丝
 	SelectAllFollowed(userID int64) (*[]int64, error) //查询所有已经关注的
-	AddFollower(userID int64) error
-	SubFollower(userID int64) error
-	AddFollowed(userID int64) error
-	SubFollowed(userID int64) error
 }
 
 type FollowCtlDealer struct{}
 
-func (f *FollowCtlDealer) AddFollower(userID int64) error {
-	err := dbProvider.GetDB().Exec("update users set follower_count = follower_count+1 where id = ?", userID).Error
-	if err != nil {
-		return err
-	}
-	return err
-}
-
-func (f *FollowCtlDealer) SubFollower(userID int64) error {
-	err := dbProvider.GetDB().Exec("update users set follower_count = follower_count-1 where id = ?", userID).Error
-	if err != nil {
-		return err
-	}
-	return err
-}
-
-func (f *FollowCtlDealer) AddFollowed(userID int64) error {
-	err := dbProvider.GetDB().Exec("update users set follow_count = follow_count+1 where id = ?", userID).Error
-	if err != nil {
-		return err
-	}
-	return err
-}
-
-func (f *FollowCtlDealer) SubFollowed(userID int64) error {
-	err := dbProvider.GetDB().Exec("update users set follow_count = follow_count-1 where id = ?", userID).Error
-	if err != nil {
-		return err
-	}
-	return err
-}
-
+// SelectAllFollower 在运行没出err的情况下返回user的id数组指针
 func (f *FollowCtlDealer) SelectAllFollower(userID int64) (*[]int64, error) {
 	var ids []int64
 	err := dbProvider.GetDB().Raw("select user_id from follow where followed_id = ?", userID).Scan(&ids).Error
@@ -74,6 +39,7 @@ func (f *FollowCtlDealer) SelectAllFollower(userID int64) (*[]int64, error) {
 	return &ids, err
 }
 
+// SelectAllFollowed 在运行没出err的情况下返回user的id数组指针
 func (f *FollowCtlDealer) SelectAllFollowed(userID int64) (*[]int64, error) {
 	var ids []int64
 	//查询关注列表的用户id
@@ -89,7 +55,7 @@ func (f *FollowCtlDealer) FollowUser(userID int64, ToUserID int64) error {
 		UserID:     userID,
 		FollowedID: ToUserID,
 	}
-	//开启事务  任何错误都将回滚   在事务中应该使用tx而不是dbProvider
+	//开启事务了，任何错误都将回滚   在事务中应该使用tx而不是dbProvider
 	return dbProvider.GetDB().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(follow).Error; err != nil {
 			return err
@@ -107,6 +73,7 @@ func (f *FollowCtlDealer) FollowUser(userID int64, ToUserID int64) error {
 }
 
 func (f *FollowCtlDealer) CancelFollowUser(userID int64, ToUserID int64) error {
+	//开启事务，任何错误都将回滚   返回nil提交事务
 	return dbProvider.GetDB().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("user_id = ? and followed_id = ?", userID, ToUserID).Delete(&Follow{}).Error; err != nil {
 			return err
@@ -123,6 +90,7 @@ func (f *FollowCtlDealer) CancelFollowUser(userID int64, ToUserID int64) error {
 	})
 }
 
+// CheckHasFollowed 在运行没出err的情况下，false表示未关注，true表示已关注，使用时应先判断err
 func (f *FollowCtlDealer) CheckHasFollowed(userID int64, ToUserID int64) (bool, error) {
 	var ids []int64
 	err := dbProvider.GetDB().Raw("select followed_id from follow where user_id = ?", userID).Scan(&ids).Error

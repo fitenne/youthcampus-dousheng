@@ -10,7 +10,6 @@ import (
 
 // FollowUser 关注一名用户，返回true表示关注成功（注：在已关注的情况下再次关注被认为是错误的，且不能关注自己）
 func FollowUser(userID int64, toUserID int64) error {
-	//需要加判断用户是否存在的逻辑和关注自己或取消关注自己
 	followdealer := repository.GetDealerFollow()
 	userCTL := repository.GetUserCtl()
 
@@ -93,6 +92,7 @@ func GetFollowList(userID int64) (*[]model.User, error) {
 	return &users, nil
 }
 
+// GetFollowerList 获取粉丝列表所有用户
 func GetFollowerList(userID int64) (*[]model.User, error) {
 	userCTL := repository.GetUserCtl()
 	//校验用户是否存在

@@ -64,3 +64,17 @@ CREATE TABLE `videos`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+-- ----------------------------
+-- Table structure for follow
+-- ----------------------------
+DROP TABLE IF EXISTS `follow`;
+CREATE TABLE `follow`
+(
+    `id`          bigint(20)  NOT NULL AUTO_INCREMENT,
+    `user_id`     bigint(20)  NOT NULL,
+    `followed_id` varchar(64) NOT NULL,
+    `create_at` timestamp   NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4
