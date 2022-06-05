@@ -1,24 +1,9 @@
 package repository
 
 import (
-	"gorm.io/gorm"
-	"time"
-
+	"errors"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
 )
-
-// comment struct mapped to database
-type Comment struct {
-	ID int64 `gorm:"primarykey"`
-	// 使用 UserId 作为外键
-	UserId    int64  `gorm:"user_id"`
-	User      User   `gorm:"foreignKey:UserId"`
-	VideoId   int64  `gorm:"video_id"`
-	Content   string `gorm:"content"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *gorm.DeletedAt `gorm:"index"`
-}
 
 type CommentCtl struct{}
 
@@ -33,71 +18,48 @@ func GetCommentCtl() model.CommentCtl {
 	return &commentCtl
 }
 
-func (commentCtl *CommentCtl) Publish(videoId int64, comment *model.Comment) error {
-
-	// 创建评论信息
-	err := dbProvider.GetDB().Create(&Comment{
-		UserId:  comment.User.ID,
-		VideoId: videoId,
-		Content: comment.CommentText,
-	}).Error
-
-	return err
+// Publish 保存评论
+func (commentCtl *CommentCtl) Publish(comment *model.Comment) error {
+	return dbProvider.GetDB().Create(&comment).Error
 }
 
+// DeleteById 删除评论(软删除)
 func (commentCtl *CommentCtl) DeleteById(commentId int64) error {
-	// 软删除
-	return dbProvider.GetDB().Where("id = ?", commentId).Delete(&Comment{}).Error
+	return dbProvider.GetDB().Where("id = ?", commentId).Delete(&model.Comment{}).Error
 }
 
+// QueryById 查询评论
 func (commentCtl *CommentCtl) QueryById(commentId int64) (*model.Comment, error) {
+
 	// 单个查询
-	var commentEntity Comment = Comment{}
+	comment := model.Comment{}
 
 	// 异常处理
-	err := dbProvider.GetDB().Preload("User").Find(&commentEntity, commentId).Error
+	err := dbProvider.GetDB().Preload("User").Find(&comment, commentId).Error
 	if err != nil {
 		return nil, err
 	}
 
+	if comment.ID == 0 {
+		return nil, errors.New("comment 不存在")
+	}
+
 	// 返回结果
-	return &model.Comment{
-		ID: commentEntity.ID,
-		User: model.User{
-			ID:            commentEntity.User.ID,
-			Name:          commentEntity.User.UserName,
-			FollowCount:   commentEntity.User.FollowCount,
-			FollowerCount: commentEntity.User.FollowerCount,
-		},
-		CommentText: commentEntity.Content,
-		CreateDate:  commentEntity.CreatedAt,
-	}, err
+	return &comment, err
 }
 
-func (commentCtl *CommentCtl) QueryListByVideoId(videoId int64) ([]model.Comment, error) {
+// QueryListByVideoId 列表查询
+func (commentCtl *CommentCtl) QueryListByVideoId(videoId int64) ([]*model.Comment, error) {
 
 	// 数据库实体
-	var commentEntitis []Comment
+	var comments []*model.Comment
 
 	// 查库
-	err := dbProvider.GetDB().Preload("User").Where("video_id = ?", videoId).Find(&commentEntitis).Error
-
-	// model实体
-	comments := make([]model.Comment, len(commentEntitis))
-	for i := 0; i < len(commentEntitis); i++ {
-		comment := commentEntitis[i]
-		comments[i] = model.Comment{
-			ID: comment.ID,
-			User: model.User{
-				ID:            comment.User.ID,
-				Name:          comment.User.UserName,
-				FollowCount:   comment.User.FollowCount,
-				FollowerCount: comment.User.FollowerCount,
-			},
-			CommentText: comment.Content,
-			CreateDate:  comment.CreatedAt,
-		}
-	}
+	err := dbProvider.GetDB().
+		Preload("User").
+		Where("video_id = ?", videoId).
+		Order("create_date desc").
+		Find(&comments).Error
 
 	return comments, err
 }

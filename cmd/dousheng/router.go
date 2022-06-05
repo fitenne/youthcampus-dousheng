@@ -27,7 +27,7 @@ func initRouter(r *gin.Engine) {
 	apiRouter.POST("/favorite/action/", controller.FavoriteAction)
 	apiRouter.GET("/favorite/list/", controller.FavoriteList)
 	apiRouter.POST("/comment/action/", mid.JWTAuthMiddleware(), controller.CommentAction)
-	apiRouter.GET("/comment/list/", controller.CommentList)
+	apiRouter.GET("/comment/list/", mid.JWTAuthMiddleware(), controller.CommentList)
 
 	// extra apis - II
 	apiRouter.POST("/relation/action/", mid.JWTAuthMiddleware(), controller.RelationAction)

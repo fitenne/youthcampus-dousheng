@@ -63,7 +63,24 @@ CREATE TABLE `videos`  (
    CONSTRAINT `fk_videos_author` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
-SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
+-- Table structure for comments
+-- ----------------------------
+DROP TABLE IF EXISTS `comments`;
+CREATE TABLE `comments`  (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '评论id',
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+  `user_id` bigint NULL DEFAULT NULL,
+  `video_id` bigint NULL DEFAULT NULL,
+  `created_at` varchar(50) NULL DEFAULT NULL,
+  `deleted_at` datetime(3) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idk_comments_video`(`video_id`) USING BTREE,
+  INDEX `fk_comments_user`(`user_id`) USING BTREE,
+  INDEX `idx_comments_deleted_at`(`deleted_at`) USING BTREE,
+  CONSTRAINT `fk_comments_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 
 -- ----------------------------
@@ -78,3 +95,5 @@ CREATE TABLE `follow`
     `create_at` timestamp   NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4
+
+SET FOREIGN_KEY_CHECKS = 1;
