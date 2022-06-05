@@ -9,11 +9,6 @@ type CommentCtl struct{}
 
 var commentCtl CommentCtl
 
-// 指定 Comment 对应的数据库表名
-// func (Comment) TableName() string {
-// 	return "comments"
-// }
-
 func GetCommentCtl() model.CommentCtl {
 	return &commentCtl
 }
@@ -40,7 +35,7 @@ func (commentCtl *CommentCtl) QueryById(commentId int64) (*model.Comment, error)
 		return nil, err
 	}
 
-	if comment.ID == 0 {
+	if comment.ID <= 0 {
 		return nil, errors.New("comment 不存在")
 	}
 
@@ -49,15 +44,15 @@ func (commentCtl *CommentCtl) QueryById(commentId int64) (*model.Comment, error)
 }
 
 // QueryListByVideoId 列表查询
-func (commentCtl *CommentCtl) QueryListByVideoId(videoId int64) ([]*model.Comment, error) {
+func (commentCtl *CommentCtl) QueryListByVideoId(videoId int64) ([]model.Comment, error) {
 
 	// 数据库实体
-	var comments []*model.Comment
+	comments := make([]model.Comment, 20)
 
 	// 查库
 	err := dbProvider.GetDB().
-		Preload("User").
 		Where("video_id = ?", videoId).
+		Joins("User").
 		Order("create_date desc").
 		Find(&comments).Error
 
