@@ -1,7 +1,6 @@
 package controller
 
 import (
-	// "fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -98,15 +97,7 @@ func FavoriteAction(c *gin.Context) {
 		// 正常返回
 		c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "success"})
 		return
-	// case "3":
-	// 	// 创建follow表
-	// 	err := service.CreateTableTest()
-	// 	if err != nil {
-	// 		c.JSON(http.StatusOK, Response{
-	// 			StatusCode: 3,
-	// 			StatusMsg:  "error " + serverErr.Error(),
-	// 		})
-	// 	}
+
 	default: // 异常分支处理，操作类型异常
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 2,
@@ -116,7 +107,6 @@ func FavoriteAction(c *gin.Context) {
 	}
 }
 
-// FavoriteList all users have same favorite video list
 func FavoriteList(c *gin.Context) {
 
 	// token := c.DefaultQuery("token", "")
