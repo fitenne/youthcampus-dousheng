@@ -98,7 +98,7 @@ func (favoriteCtl *FavoriteCtl) FavoriteVideoList(userId int64) ([]model.Video, 
 
 	for i := 0; i < len(videolistEntitis); i++ {
 
-		isFollow, err := GetDealerFollow().CheckHasFollowed(int(userId), int(videolistEntitis[i].Author.ID))
+		isFollow, err := GetDealerFollow().CheckHasFollowed(userId, videolistEntitis[i].Author.ID)
 		if isFollow {
 			videolistEntitis[i].Author.IsFollow = isFollow
 		} else {
