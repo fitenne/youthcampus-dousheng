@@ -97,23 +97,22 @@ func (favoriteCtl *FavoriteCtl) FavoriteVideoList(userId int64) ([]model.Video, 
 	err := dbProvider.GetDB().Preload("Author").Joins("JOIN favorites ON favorites.video_id = videos.id AND favorites.user_id = ?", userId).Find(&videolistEntitis).Error
 
 	for i := 0; i < len(videolistEntitis); i++ {
-
+		// 调用follow里的接口获取是否已关注
 		isFollow, err := GetDealerFollow().CheckHasFollowed(userId, videolistEntitis[i].Author.ID)
-		if isFollow {
-			videolistEntitis[i].Author.IsFollow = isFollow
-		} else {
-			videolistEntitis[i].Author.IsFollow = false
-		}
+
+		videolistEntitis[i].Author.IsFollow = isFollow
 		if err != nil {
 			return nil, err
 		}
+		videolistEntitis[i].IsFavorite = true
 	}
+
 	return videolistEntitis, err
 }
 
 // 根据结构体创建表
 func (favoriteCtl *FavoriteCtl) CreateTableTest() error {
-	err := dbProvider.GetDB().AutoMigrate(&model.Favorite{})
+	err := dbProvider.GetDB().AutoMigrate(&Follow{})
 	if err != nil {
 		fmt.Println(err)
 	}

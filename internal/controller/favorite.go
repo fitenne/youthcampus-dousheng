@@ -11,31 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 先不校验token
 func FavoriteAction(c *gin.Context) {
 
-	// token := c.DefaultQuery("token", "")
 	userIdQuery := c.DefaultQuery("user_id", "")
 	videoIdQuery := c.DefaultQuery("video_id", "")
 	actionType := c.DefaultQuery("action_type", "")
-	// 形成参数表
-	// params := map[string]string{
-	// 	"token":       token,
-	// 	"user_id":     userIdQuery,
-	// 	"video_id":    videoIdQuery,
-	// 	"action_type": actionType,
-	// }
-
-	// 参数校验
-	// for key, value := range params {
-	// 	if value == "" {
-	// 		c.JSON(http.StatusOK, Response{StatusCode: 2, StatusMsg: "Param " + key + " can't be empty"})
-	// 		return
-	// 	}
-	// }
-
-	// 检查token
-	// if _, exist := usersLoginInfo[params["token"]]; exist {
 
 	// userId 校验
 	userId, err := strconv.ParseInt(userIdQuery, 10, 64)
@@ -118,7 +98,15 @@ func FavoriteAction(c *gin.Context) {
 		// 正常返回
 		c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "success"})
 		return
-
+	// case "3":
+	// 	// 创建follow表
+	// 	err := service.CreateTableTest()
+	// 	if err != nil {
+	// 		c.JSON(http.StatusOK, Response{
+	// 			StatusCode: 3,
+	// 			StatusMsg:  "error " + serverErr.Error(),
+	// 		})
+	// 	}
 	default: // 异常分支处理，操作类型异常
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 2,
@@ -126,10 +114,6 @@ func FavoriteAction(c *gin.Context) {
 		})
 		return
 	}
-
-	// } else {
-	// 	c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-	// }
 }
 
 // FavoriteList all users have same favorite video list
@@ -148,16 +132,8 @@ func FavoriteList(c *gin.Context) {
 		})
 		return
 	}
-	// var videolist []Video
-	// videolist, err = service.FavoriteVideoList(userId)
-	// c.JSON(http.StatusOK, VideoListResponse{
-	// 	Response: Response{
-	// 		StatusCode: 0,
-	// 	},
-	// 	VideoList: videolist,
-	// })
 
-	// 获取评论 替换DemoComments
+	// 获取点赞视频列表
 	VideoListDTOs, err := service.FavoriteVideoList(userId)
 
 	// 异常分支处理：操作异常
@@ -169,32 +145,6 @@ func FavoriteList(c *gin.Context) {
 		})
 		return
 	}
-
-	// // 类型转换
-	// videos := make([]Video, len(VideoListDTOs))
-
-	// // VideoListDTOs转换为videos
-	// for i := 0; i < len(VideoListDTOs); i++ {
-	// 	video := VideoListDTOs[i]
-	// 	fmt.Println(video)
-	// 	videos[i] = Video{
-	// 		Id: video.ID,
-	// 		// 在User赋值这里会有空指针问题,如果把model.video的Author*改为Author就跑通了
-	// 		Author: User{
-	// 			Id:            video.Author.ID,
-	// 			Name:          video.Author.Name,
-	// 			FollowCount:   video.Author.FollowCount,
-	// 			FollowerCount: video.Author.FollowerCount,
-	// 			IsFollow:      video.Author.IsFollow,
-	// 		},
-
-	// 		PlayUrl:       video.PlayUrl,
-	// 		CoverUrl:      video.CoverUrl,
-	// 		FavoriteCount: video.FavoriteCount,
-	// 		CommentCount:  video.CommentCount,
-	// 		IsFavorite:    true,
-	// 	}
-	// }
 
 	// 返回结果
 	c.JSON(http.StatusOK, VideoListResponse{
