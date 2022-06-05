@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/fitenne/youthcampus-dousheng/internal/common/jwt"
-	"github.com/fitenne/youthcampus-dousheng/internal/repository"
 	"log"
 	"net/http"
 	"strconv"
@@ -29,7 +28,7 @@ type CommentActionResponse struct {
 // CommentListResponse 列表查询响应体
 type CommentListResponse struct {
 	Response
-	CommentList []*model.Comment `json:"comment_list,omitempty"`
+	CommentList []model.Comment `json:"comment_list,omitempty"`
 }
 
 // CommentAction 评论增删
@@ -47,7 +46,7 @@ func CommentAction(c *gin.Context) {
 	userId := claims.UserID
 	if err != nil {
 		log.Println("controller.CommentAction|token parse error|jwt.ParseToken: " + err.Error())
-		c.JSON(http.StatusOK, Response{StatusCode: 2, StatusMsg: "token parse error"})
+		c.JSON(http.StatusOK, Response{StatusCode: 2, StatusMsg: "invalid token"})
 		return
 	}
 
@@ -60,24 +59,15 @@ func CommentAction(c *gin.Context) {
 			VideoId:    comActReq.VideoId,
 			UserID:     userId,
 			Content:    c.DefaultQuery("comment_text", ""),
-			CreateDate: time.Now().Format("01-01"),
+			CreateDate: time.Now().Format("01-02"),
 		}
 
 		// 调用发布接口, 异常处理
-		if serverErr := service.Publish(&comment); serverErr != nil {
+		if serverErr := service.Publish(userId, &comment); serverErr != nil {
 			log.Println("controller.CommentAction|server error|service.Publish: " + serverErr.Error())
 			c.JSON(http.StatusOK, Response{StatusCode: 3, StatusMsg: "server error: " + serverErr.Error()})
 			return
 		}
-
-		// 获取用户信息
-		user, err := repository.GetUserCtl().QueryByID(userId)
-		if err != nil {
-			log.Println("controller.CommentAction|server error|repository.GetUserCtl.QueryByID: " + err.Error())
-			c.JSON(http.StatusOK, Response{StatusCode: 3, StatusMsg: "server error: " + err.Error()})
-			return
-		}
-		comment.User = user
 
 		// 返回结果
 		c.JSON(http.StatusOK, CommentActionResponse{
@@ -94,6 +84,8 @@ func CommentAction(c *gin.Context) {
 			c.JSON(http.StatusOK, Response{StatusCode: 2, StatusMsg: "invalid comment_id"})
 			return
 		}
+
+		// 转换commentId
 		commentId, err := strconv.ParseInt(commentIdQuery, 10, 64)
 		if err != nil {
 			c.JSON(http.StatusOK, Response{StatusCode: 2, StatusMsg: "invalid comment_id"})
@@ -120,12 +112,23 @@ func CommentAction(c *gin.Context) {
 // CommentList all videos have same demo comment list
 func CommentList(c *gin.Context) {
 
+	// 检查token
+	claims, err := jwt.ParseToken(c.DefaultQuery("token", ""))
+	userId := claims.UserID
+	if err != nil {
+		log.Println("controller.CommentList|token parse error|jwt.ParseToken: " + err.Error())
+		c.JSON(http.StatusOK, Response{StatusCode: 2, StatusMsg: "invalid token"})
+		return
+	}
+
 	// 获取评论id
 	videoIdQuery, ok := c.GetQuery("video_id")
 	if !ok {
 		c.JSON(http.StatusOK, Response{StatusCode: 2, StatusMsg: "invalid video_id"})
 		return
 	}
+
+	// video转换
 	videoId, err := strconv.ParseInt(videoIdQuery, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{StatusCode: 2, StatusMsg: "invalid video_id"})
@@ -133,7 +136,7 @@ func CommentList(c *gin.Context) {
 	}
 
 	// 获取评论, 异常处理
-	comments, err := service.QueryListByVideoId(videoId)
+	comments, err := service.QueryListByVideoId(videoId, userId)
 	if err != nil {
 		log.Println("controller.CommentList|server error|service.QueryListByVideoId: " + err.Error())
 		c.JSON(http.StatusOK, Response{StatusCode: 3, StatusMsg: "server error: " + err.Error()})

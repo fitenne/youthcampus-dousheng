@@ -4,6 +4,18 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserEntity struct {
+	ID            int64  `json:"id,omitempty" gorm:"primaryKey"`
+	UserName      string `json:"name,omitempty" gorm:"user_name"`
+	FollowCount   int64  `json:"follow_count,omitempty" gorm:"follow_count"`
+	FollowerCount int64  `json:"follower_count,omitempty" gorm:"follower_count"`
+	IsFollow      bool   `json:"is_follow,omitempty" gorm:"-"`
+}
+
+func (UserEntity) TableName() string {
+	return "users"
+}
+
 type Comment struct {
 	ID         int64           `json:"id,omitempty" gorm:"primaryKey;comment:评论ID;autoIncrement;unique_index:create_time_index"`
 	Content    string          `json:"content" gorm:"content;comment:评论内容;unique_index:create_time_index;not null"`
@@ -13,7 +25,7 @@ type Comment struct {
 	DeletedAt  *gorm.DeletedAt `json:"-" gorm:"index;comment:删除标记位;unique_index:create_time_index"`
 
 	// 发布者
-	User User `json:"user" gorm:"ForeignKey:UserID"`
+	User *UserEntity `json:"user" gorm:"ForeignKey:UserID"`
 }
 
 // CommentCtl 对数据库的修改
@@ -29,5 +41,5 @@ type CommentCtl interface {
 	QueryById(commentId int64) (*Comment, error)
 
 	// QueryListByVideoId 列表查询
-	QueryListByVideoId(videoId int64) ([]*Comment, error)
+	QueryListByVideoId(videoId int64) ([]Comment, error)
 }
