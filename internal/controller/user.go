@@ -1,9 +1,16 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
+	"errors"
+	"log"
 	"net/http"
-	"sync/atomic"
+	"strconv"
+
+	"github.com/fitenne/youthcampus-dousheng/internal/common"
+	"github.com/fitenne/youthcampus-dousheng/internal/repository"
+	"github.com/fitenne/youthcampus-dousheng/internal/service"
+	"github.com/fitenne/youthcampus-dousheng/pkg/model"
+	"github.com/gin-gonic/gin"
 )
 
 // usersLoginInfo use map to store user info, and key is username+password for demo
@@ -29,64 +36,156 @@ type UserLoginResponse struct {
 
 type UserResponse struct {
 	Response
-	User User `json:"user"`
+	User model.User `json:"user"`
+}
+
+type RegisterRequest struct {
+	Username string `form:"username" binding:"required,gt=0,lte=32"`
+	Password string `form:"password" binding:"required,gt=0,lte=32"`
+}
+
+type LoginRequest struct {
+	Username string `form:"username" binding:"required,gt=0,lte=32"`
+	Password string `form:"password" binding:"required,gt=0,lte=32"`
 }
 
 func Register(c *gin.Context) {
-	username := c.Query("username")
-	password := c.Query("password")
-
-	token := username + password
-
-	if _, exist := usersLoginInfo[token]; exist {
+	var regReq RegisterRequest
+	if err := c.ShouldBindQuery(&regReq); err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
+			Response: Response{
+				StatusCode: http.StatusBadRequest,
+				StatusMsg:  "invalid request",
+			},
 		})
-	} else {
-		atomic.AddInt64(&userIdSequence, 1)
-		newUser := User{
-			Id:   userIdSequence,
-			Name: username,
-		}
-		usersLoginInfo[token] = newUser
-		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 0},
-			UserId:   userIdSequence,
-			Token:    username + password,
-		})
+		return
 	}
+
+	exists, err := service.UserExists(regReq.Username)
+	if exists {
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusForbidden,
+				StatusMsg:  "User already exist",
+			},
+		})
+		return
+	}
+	if err != nil {
+		log.Print(err.Error())
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusInternalServerError,
+				StatusMsg:  "internal server error",
+			},
+		})
+		return
+	}
+
+	id, token, err := service.UserRegister(regReq.Username, regReq.Password)
+	if err != nil {
+		log.Print(err.Error())
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusInternalServerError,
+				StatusMsg:  "internal server error",
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserLoginResponse{
+		UserId: id,
+		Token:  token,
+	})
 }
 
 func Login(c *gin.Context) {
-	username := c.Query("username")
-	password := c.Query("password")
-
-	token := username + password
-
-	if user, exist := usersLoginInfo[token]; exist {
+	var loginReq LoginRequest
+	if err := c.ShouldBindQuery(&loginReq); err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 0},
-			UserId:   user.Id,
-			Token:    token,
+			Response: Response{
+				StatusCode: http.StatusBadRequest,
+				StatusMsg:  "invalid request",
+			},
 		})
-	} else {
-		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
-		})
+		return
 	}
+
+	id, token, err := service.UserLogin(loginReq.Username, loginReq.Password)
+	if err != nil {
+		if errors.Is(err, common.ErrUserNotExists{}) {
+			c.JSON(http.StatusOK, UserLoginResponse{
+				Response: Response{
+					StatusCode: http.StatusUnauthorized,
+					StatusMsg:  "username password mismatch",
+				},
+			})
+		}
+
+		log.Print(err.Error())
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusInternalServerError,
+				StatusMsg:  "internal server error",
+			},
+		})
+		return
+	}
+	if token == "" {
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusUnauthorized,
+				StatusMsg:  "invalid credentials",
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserLoginResponse{
+		Response: Response{StatusCode: 0},
+		UserId:   id,
+		Token:    token,
+	})
 }
 
 func UserInfo(c *gin.Context) {
-	token := c.Query("token")
-
-	if user, exist := usersLoginInfo[token]; exist {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 0},
-			User:     user,
+	rid := c.Query("user_id")
+	id, err := strconv.Atoi(rid)
+	if rid == "" || err != nil {
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusBadRequest,
+				StatusMsg:  "invalid credentials",
+			},
 		})
-	} else {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
-		})
+		return
 	}
+
+	u, err := repository.GetUserCtl().QueryByID(int64(id))
+	//! not implemented, is_follow = GetCtl().QueryFollow(me, id)
+	if err != nil {
+		if errors.Is(err, common.ErrUserNotExists{}) {
+			c.JSON(http.StatusOK, UserLoginResponse{
+				Response: Response{
+					StatusCode: http.StatusBadRequest,
+					StatusMsg:  "invalid credentials",
+				},
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: http.StatusInternalServerError,
+				StatusMsg:  "internal server error",
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserResponse{
+		Response: Response{StatusCode: 0},
+		User:     u,
+	})
 }
