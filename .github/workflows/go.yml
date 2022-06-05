@@ -16,6 +16,7 @@ jobs:
     - uses: Jerome1337/gofmt-action@v1.0.4
       with:
         gofmt-path: '.'
+        gofmt-flags: '-l -d -w'
 
     - name: Set up Go
       uses: actions/setup-go@v3
