@@ -14,7 +14,7 @@ type Video struct {
 	DeletedAt     gorm.DeletedAt `json:"-" gorm:"index;comment:删除标记位"`
 
 	//作者
-	Author *User `json:"author" gorm:"ForeignKey:AuthorID;"`
+	Author *UserEntity `json:"author" gorm:"ForeignKey:AuthorID;"`
 	//是否点赞
 	IsFavorite bool `json:"is_favorite,omitempty" gorm:"-"`
 }

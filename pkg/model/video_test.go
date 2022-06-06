@@ -2,12 +2,13 @@ package model_test
 
 import (
 	"errors"
+	"testing"
+
 	errorcode "github.com/fitenne/youthcampus-dousheng/internal/common/error"
 	"github.com/fitenne/youthcampus-dousheng/internal/common/settings"
 	"github.com/fitenne/youthcampus-dousheng/internal/repository"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
 	"github.com/spf13/viper"
-	"testing"
 )
 
 func init() {
@@ -32,7 +33,7 @@ func TestVideoCreate1(t *testing.T) {
 		AuthorID: 1,
 		PlayUrl:  "http://www.baidu.com1",
 		CoverUrl: "http://www.baidu.com1",
-		Author: &model.User{
+		Author: &model.UserEntity{
 			ID:            1,
 			FollowCount:   0,
 			FollowerCount: 0,
@@ -52,7 +53,7 @@ func TestVideoCreate2(t *testing.T) {
 		AuthorID: 1,
 		PlayUrl:  "http://www.baidu.com2",
 		CoverUrl: "http://www.baidu.com2",
-		Author: &model.User{
+		Author: &model.UserEntity{
 			ID:            -999,
 			FollowCount:   0,
 			FollowerCount: 0,
@@ -77,7 +78,7 @@ func TestVideoCreate3(t *testing.T) {
 		AuthorID: -999,
 		PlayUrl:  "http://www.baidu.com3",
 		CoverUrl: "http://www.baidu.com3",
-		Author: &model.User{
+		Author: &model.UserEntity{
 			ID:            -999,
 			FollowCount:   0,
 			FollowerCount: 0,
@@ -102,7 +103,7 @@ func TestVideoDelete1(t *testing.T) {
 		AuthorID: 1,
 		PlayUrl:  "http://www.baidu.com3",
 		CoverUrl: "http://www.baidu.com3",
-		Author: &model.User{
+		Author: &model.UserEntity{
 			ID: 1,
 		},
 	}
