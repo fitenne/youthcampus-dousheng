@@ -6,11 +6,11 @@
 app:
   name: dousheng
   secret: going小分队
+  stroage_host: "host or host:port" # used for play_url
 
 db:
   driver: mysql
-  # host: example.com
-  host: 127.0.0.1
+  host: example.com
   port: 3306
   user: demo
   pass: secret

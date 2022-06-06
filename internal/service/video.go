@@ -14,6 +14,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var StroageHost string
+
 func PublishVideo(c *gin.Context, data *multipart.FileHeader, title string, authorID int64) (int64, error) {
 	m := md5.Sum([]byte(fmt.Sprint(time.Now().UnixMicro(), data.Filename)))
 	saveTo := hex.EncodeToString(m[:]) + filepath.Ext(data.Filename)
@@ -25,7 +27,7 @@ func PublishVideo(c *gin.Context, data *multipart.FileHeader, title string, auth
 
 	playUrl := url.URL{
 		Scheme:      "http",
-		Host:        "192.168.43.131:8080",
+		Host:        StroageHost,
 		Path:        filepath.Join("/static", saveTo),
 		RawPath:     "",
 		ForceQuery:  false,

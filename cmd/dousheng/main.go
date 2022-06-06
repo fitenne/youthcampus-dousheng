@@ -4,6 +4,7 @@ import (
 	"github.com/fitenne/youthcampus-dousheng/internal/common/jwt"
 	"github.com/fitenne/youthcampus-dousheng/internal/common/settings"
 	"github.com/fitenne/youthcampus-dousheng/internal/repository"
+	"github.com/fitenne/youthcampus-dousheng/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
@@ -23,6 +24,7 @@ func init() {
 	}
 
 	jwt.Init([]byte(viper.GetString("app.secret")))
+	service.StroageHost = viper.GetString("app.stroage_host")
 
 	err := repository.Init(repository.DBConfig{
 		Driver:   viper.GetString("db.driver"),
