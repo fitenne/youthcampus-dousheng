@@ -3,9 +3,10 @@ package repository
 // VideoRepository interface
 
 import (
+	"time"
+
 	errorcode "github.com/fitenne/youthcampus-dousheng/internal/common/error"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
-	"time"
 )
 
 type videoCtl struct {
@@ -30,7 +31,7 @@ func (v *videoCtl) Create(video *model.Video) (int64, error) {
 	//if _,err:=GetUserCtl().QueryUserByID(video.AuthorID); err!= nil {
 	//	return 0, errors.New(errorcode.VideoCreateForeignKeyNotExist.Message())
 	//}
-	error := dbProvider.GetDB().Select("AuthorID","PlayUrl", "CoverUrl").Create(video).Error
+	error := dbProvider.GetDB().Select("AuthorID", "PlayUrl", "CoverUrl", "Title").Create(video).Error
 	if error == nil {
 		return video.ID, nil
 	} else {
