@@ -3,8 +3,8 @@ package model
 import "gorm.io/gorm"
 
 type Video struct {
-	ID            int64 `json:"id,omitempty" gorm:"primaryKey;comment:短视频id;autoIncrement"`
-	Title         string
+	ID            int64          `json:"id,omitempty" gorm:"primaryKey;comment:短视频id;autoIncrement"`
+	Title         string         `json:"title"`
 	AuthorID      int64          `json:"-" gorm:"not null;comment:作者id"`
 	PlayUrl       string         `json:"play_url,omitempty" gorm:"size:50;not null;comment:短视频url"`
 	CoverUrl      string         `json:"cover_url,omitempty" gorm:"size:50;not null;comment:封面url"`
