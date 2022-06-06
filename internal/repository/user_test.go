@@ -1,36 +1,40 @@
 package repository
 
 import (
+	"os"
 	"reflect"
 	"testing"
+
+	"github.com/fitenne/youthcampus-dousheng/internal/common/settings"
+	"github.com/spf13/viper"
 
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
 )
 
-//func TestMain(m *testing.M) {
-//	if err := settings.Init("../../test.config.yaml"); err != nil {
-//		panic(err.Error())
-//	}
-//
-//	c := DBConfig{
-//		Driver:   viper.GetString("db.driver"),
-//		Host:     viper.GetString("db.host"),
-//		Port:     viper.GetString("db.port"),
-//		User:     viper.GetString("db.user"),
-//		Password: viper.GetString("db.pass"),
-//		DBname:   viper.GetString("db.database"),
-//		LogLevel: viper.GetInt("db.loglevel"),
-//	}
-//	dbProvider = &MysqlProdiver{}
-//	if err := dbProvider.Connect(c); err != nil {
-//		panic(err.Error())
-//	}
-//	if err := dbProvider.GetDB().AutoMigrate(&User{}); err != nil {
-//		panic(err.Error())
-//	}
-//
-//	os.Exit(m.Run())
-//}
+func TestMain(m *testing.M) {
+	if err := settings.Init("../../test.config.yaml"); err != nil {
+		panic(err.Error())
+	}
+
+	c := DBConfig{
+		Driver:   viper.GetString("db.driver"),
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		User:     viper.GetString("db.user"),
+		Password: viper.GetString("db.pass"),
+		DBname:   viper.GetString("db.database"),
+		LogLevel: viper.GetInt("db.loglevel"),
+	}
+	dbProvider = &MysqlProdiver{}
+	if err := dbProvider.Connect(c); err != nil {
+		panic(err.Error())
+	}
+	if err := dbProvider.GetDB().AutoMigrate(&User{}); err != nil {
+		panic(err.Error())
+	}
+
+	os.Exit(m.Run())
+}
 
 func TestQueryByID(t *testing.T) {
 	cleanUpTable(t)
