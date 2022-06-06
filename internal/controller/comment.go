@@ -94,7 +94,7 @@ func CommentAction(c *gin.Context) {
 		}
 
 		// 调用删除接口, 异常处理
-		if serverErr := service.DeleteById(userId, commentId); serverErr != nil {
+		if serverErr := service.DeleteById(commentId, userId, comActReq.VideoId); serverErr != nil {
 			log.Println("controller.CommentAction|server error|service.DeleteById: " + serverErr.Error())
 			c.JSON(http.StatusOK, Response{StatusCode: 3, StatusMsg: "server error: " + serverErr.Error()})
 			return

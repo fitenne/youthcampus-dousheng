@@ -36,7 +36,7 @@ func Publish(userId int64, comment *model.Comment) error {
 	return nil
 }
 
-func DeleteById(userId, commentId int64) error {
+func DeleteById(commentId, userId, videoId int64) error {
 
 	comment, err := commentCtl.QueryById(commentId)
 	if err != nil {
@@ -47,7 +47,7 @@ func DeleteById(userId, commentId int64) error {
 		return errors.New("用户无删除权限")
 	}
 
-	return commentCtl.DeleteById(commentId)
+	return commentCtl.DeleteById(commentId, videoId)
 }
 
 func QueryListByVideoId(videoId, userId int64) ([]model.Comment, error) {

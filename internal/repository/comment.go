@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"gorm.io/gorm"
 
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
 )
@@ -16,12 +17,44 @@ func GetCommentCtl() model.CommentCtl {
 
 // Publish 保存评论
 func (commentCtl *CommentCtl) Publish(comment *model.Comment) error {
-	return dbProvider.GetDB().Create(&comment).Error
+
+	return dbProvider.GetDB().Transaction(func(tx *gorm.DB) error {
+
+		// 在事务中执行一些 db 操作（从这里开始，您应该使用 'tx' 而不是 'db'）
+		if err := tx.Create(&comment).Error; err != nil {
+			return err // 返回任何错误都会回滚事务
+		}
+
+		if err := tx.Table("videos").Where("id", comment.VideoId).
+			UpdateColumn("comment_count", gorm.Expr("comment_count + 1")).
+			Error; err != nil {
+			return err
+		}
+
+		// 返回 nil 提交事务
+		return nil
+	})
 }
 
 // DeleteById 删除评论(软删除)
-func (commentCtl *CommentCtl) DeleteById(commentId int64) error {
-	return dbProvider.GetDB().Where("id = ?", commentId).Delete(&model.Comment{}).Error
+func (commentCtl *CommentCtl) DeleteById(commentId, videoId int64) error {
+
+	return dbProvider.GetDB().Transaction(func(tx *gorm.DB) error {
+
+		// 在事务中执行一些 db 操作（从这里开始，您应该使用 'tx' 而不是 'db'）
+		if err := tx.Where("id = ?", commentId).Delete(&model.Comment{}).Error; err != nil {
+			return err // 返回任何错误都会回滚事务
+		}
+
+		if err := tx.Table("videos").Where("id", videoId).
+			UpdateColumn("comment_count", gorm.Expr("comment_count - 1")).
+			Error; err != nil {
+			return err
+		}
+
+		// 返回 nil 提交事务
+		return nil
+	})
 }
 
 // QueryById 查询评论

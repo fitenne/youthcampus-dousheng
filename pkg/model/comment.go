@@ -35,7 +35,11 @@ type CommentCtl interface {
 	Publish(comment *Comment) error
 
 	// DeleteById 删除接口
-	DeleteById(commentId int64) error
+	DeleteById(commentId, videoId int64) error
+
+	// QueryById 查询单个评论
 	QueryById(commentId int64) (*Comment, error)
+
+	// QueryListByVideoId 查询评论列表
 	QueryListByVideoId(videoId int64) ([]Comment, error)
 }
