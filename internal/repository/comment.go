@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
 )
 
@@ -53,7 +54,7 @@ func (commentCtl *CommentCtl) QueryListByVideoId(videoId int64) ([]model.Comment
 	err := dbProvider.GetDB().
 		Where("video_id = ?", videoId).
 		Joins("User").
-		Order("create_date desc").
+		Order("created_at desc").
 		Find(&comments).Error
 
 	return comments, err

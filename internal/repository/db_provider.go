@@ -88,7 +88,6 @@ func Init(c DBConfig) error {
 		//	}
 		//}
 
-
 		//// 创建表video
 		//if !db.Migrator().HasTable(&model.Video{}) {
 		//	if err := db.Set("gorm:table_options", "ENGINE=InnoDB").Migrator().CreateTable(model.Video{}).Error; err != nil {

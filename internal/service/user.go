@@ -57,10 +57,6 @@ func UserRegister(username, password string) (id int64, token string, err error)
 	}
 
 	token, err = jwt.GenToken(id)
-	if err != nil {
-		return 0, "", err
-	}
-
 	return id, token, nil
 }
 
@@ -75,27 +71,20 @@ func UserLogin(username, password string) (id int64, token string, err error) {
 	}
 
 	dgst, err := getDgst(s, password)
-	if err != nil {
+	if err != nil || !hmac.Equal(dgst, p) {
 		return 0, "", err
-	}
-
-	if !hmac.Equal(dgst, p) {
-		return 0, "", nil
 	}
 
 	token, err = jwt.GenToken(id)
-	if err != nil {
-		return 0, "", err
-	}
-
 	return id, token, nil
 }
 
-func UserInfo(id int64) (model.User, error) {
+func UserInfo(myID, id int64) (model.User, error) {
 	u, err := repository.GetUserCtl().QueryByID(id)
 	if err != nil {
 		return model.User{}, nil
 	}
 
-	return u, nil
+	u.IsFollow, err = repository.GetDealerFollow().CheckHasFollowed(myID, id)
+	return u, err
 }

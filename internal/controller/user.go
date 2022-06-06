@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/fitenne/youthcampus-dousheng/internal/common"
-	"github.com/fitenne/youthcampus-dousheng/internal/repository"
 	"github.com/fitenne/youthcampus-dousheng/internal/service"
 	"github.com/fitenne/youthcampus-dousheng/pkg/model"
 	"github.com/gin-gonic/gin"
@@ -162,8 +161,8 @@ func UserInfo(c *gin.Context) {
 		return
 	}
 
-	u, err := repository.GetUserCtl().QueryByID(int64(id))
-	//! not implemented, is_follow = GetCtl().QueryFollow(me, id)
+	myID := c.GetInt64("userID")
+	u, err := service.UserInfo(myID, int64(id))
 	if err != nil {
 		if errors.Is(err, common.ErrUserNotExists{}) {
 			c.JSON(http.StatusOK, UserLoginResponse{

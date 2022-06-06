@@ -4,8 +4,10 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"mime/multipart"
 	"net/url"
+	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -16,24 +18,37 @@ import (
 
 var StroageHost string
 
+// input public/filename.ext, output public/img/filename.png
+func generateThumbnailFromVideo(filename, ext string) {
+	// this just works
+	var ffmpeg = "/usr/bin/ffmpeg"
+	c := exec.Command(ffmpeg, "-i", fmt.Sprintf("public/%v%v", filename, ext), "-vf", "thumbnail", "-frames:v", "1", fmt.Sprintf("public/img/%v.png", filename))
+	if err := c.Run(); err != nil {
+		log.Println(err.Error())
+	}
+}
+
 func PublishVideo(c *gin.Context, data *multipart.FileHeader, title string, authorID int64) (int64, error) {
 	m := md5.Sum([]byte(fmt.Sprint(time.Now().UnixMicro(), data.Filename)))
-	saveTo := hex.EncodeToString(m[:]) + filepath.Ext(data.Filename)
+	filename := hex.EncodeToString(m[:])
+	saveTo := filename + filepath.Ext(data.Filename)
 
 	// 存储视频文件
 	if err := c.SaveUploadedFile(data, filepath.Join("./public", saveTo)); err != nil {
 		return -1, err
 	}
+	generateThumbnailFromVideo(filename, filepath.Ext(data.Filename))
 
 	playUrl := url.URL{
-		Scheme:      "http",
-		Host:        StroageHost,
-		Path:        filepath.Join("/static", saveTo),
-		RawPath:     "",
-		ForceQuery:  false,
-		RawQuery:    "",
-		Fragment:    "",
-		RawFragment: "",
+		Scheme: "http",
+		Host:   StroageHost,
+		Path:   filepath.Join("/static", saveTo),
+	}
+	// this just works
+	coverUrl := url.URL{
+		Scheme: "http",
+		Host:   StroageHost,
+		Path:   filepath.Join("/static/img", filename+".png"),
 	}
 
 	// video 信息写入数据库
@@ -41,12 +56,7 @@ func PublishVideo(c *gin.Context, data *multipart.FileHeader, title string, auth
 		Title:    title,
 		AuthorID: authorID,
 		PlayUrl:  playUrl.String(),
-		CoverUrl: "",
-		// FavoriteCount: 0,
-		// CommentCount:  0,
-		// CreatedAt:     0,
-		// DeletedAt    : ,
-
+		CoverUrl: coverUrl.String(),
 	}
 
 	videoId, err := repository.GetVideoCtl().Create(video)

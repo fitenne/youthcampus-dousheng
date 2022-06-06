@@ -6,8 +6,7 @@ import (
 
 type Favorite struct {
 	gorm.Model
-	UserId int64
-	// Userid  int64
+	UserId  int64
 	VideoId int64
 }
 
