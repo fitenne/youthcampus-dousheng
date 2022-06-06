@@ -10,46 +10,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type FavoriteRequest struct {
+	VideoId    int64 `form:"video_id"`
+	ActionType int   `form:"action_type"`
+}
+
 func FavoriteAction(c *gin.Context) {
-
-	userIdQuery := c.DefaultQuery("user_id", "")
-	videoIdQuery := c.DefaultQuery("video_id", "")
-	actionType := c.DefaultQuery("action_type", "")
-
-	// userId 校验
-	userId, err := strconv.ParseInt(userIdQuery, 10, 64)
-	if err != nil {
-		log.Println("FavoriteAction: userId 转换异常" + err.Error())
+	var req FavoriteRequest
+	if err := c.ShouldBind(&req); err != nil {
+		log.Printf(err.Error())
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 2,
-			StatusMsg:  "Invalid param <user_id>: " + userIdQuery,
+			StatusCode: http.StatusBadRequest,
+			StatusMsg:  "BadRequest",
 		})
 		return
 	}
 
+	// userId 校验
+	userId := c.GetInt64("userID")
 	// action_type: 1-点赞，2-取消点赞 其余返回异常
 	var serverErr error = nil
-	switch actionType {
-	case "1": // 点赞
-
-		// videoId 校验
-		videoId, err := strconv.ParseInt(videoIdQuery, 10, 64)
-		if err != nil {
-			log.Println("FavoriteAction: videoId 转换异常" + err.Error())
-			c.JSON(http.StatusOK, Response{
-				StatusCode: 2,
-				StatusMsg:  "Invalid param <comment_id>: " + videoIdQuery + err.Error(),
-			})
-			return
-		}
-
+	switch req.ActionType {
+	case 1: // 点赞
 		// 创建点赞表实体
-		newfavorite := model.Favorite{UserId: int64(userId), VideoId: int64(videoId)}
+		newfavorite := model.Favorite{UserId: int64(userId), VideoId: int64(req.VideoId)}
 
 		// 调用点赞接口
 		// 如果不为重复，就执行点赞
-		if !service.CheckRepeatFavorite(userId, videoId, &newfavorite) {
-			serverErr = service.CreateFavoriteAction(videoId, &newfavorite)
+		if !service.CheckRepeatFavorite(userId, req.VideoId, &newfavorite) {
+			serverErr = service.CreateFavoriteAction(req.VideoId, &newfavorite)
 			// 异常分支处理：操作异常
 			if serverErr != nil {
 				log.Println("FavoriteAction:  流程异常" + serverErr.Error())
@@ -67,23 +56,11 @@ func FavoriteAction(c *gin.Context) {
 		// 返回结果
 		return
 
-	case "2": // 取消点赞
-
-		// videoId 校验
-		videoId, err := strconv.ParseInt(videoIdQuery, 10, 64)
-		if err != nil {
-			log.Println("FavoriteAction: videoId 转换异常" + err.Error())
-			c.JSON(http.StatusOK, Response{
-				StatusCode: 2,
-				StatusMsg:  "Invalid param <comment_id>: " + videoIdQuery + err.Error(),
-			})
-			return
-		}
-
+	case 2: // 取消点赞
 		// 创建点赞表实体
-		newfavorite := model.Favorite{UserId: int64(userId), VideoId: int64(videoId)}
+		newfavorite := model.Favorite{UserId: int64(userId), VideoId: req.VideoId}
 		// 调用删除接口
-		serverErr = service.DeleteFavoriteAction(userId, videoId, &newfavorite)
+		serverErr = service.DeleteFavoriteAction(userId, req.VideoId, &newfavorite)
 
 		// 异常分支处理：操作异常
 		if serverErr != nil {
@@ -101,7 +78,7 @@ func FavoriteAction(c *gin.Context) {
 	default: // 异常分支处理，操作类型异常
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 2,
-			StatusMsg:  "Invalid param <action_type>: " + actionType,
+			StatusMsg:  "Invalid param action_type",
 		})
 		return
 	}
