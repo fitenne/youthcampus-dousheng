@@ -17,8 +17,8 @@ type VideoListResponse struct {
 }
 
 type PublishRequest struct {
-	Data  multipart.FileHeader `form:"data"`
-	Title string               `form:"title"`
+	Data  multipart.FileHeader `form:"data" binding:"required"`
+	Title string               `form:"title" binding:"required"`
 }
 
 // Publish check token then save upload file to public directory

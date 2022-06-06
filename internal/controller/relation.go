@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -17,6 +18,11 @@ type UserListResponse struct {
 	UserList []model.User `json:"user_list"`
 }
 
+type RelationActionRequest struct {
+	ToUserID   int64 `form:"to_user_id" binding:"required"`
+	ActionType int64 `form:"action_type" binding:"required"`
+}
+
 func StatusResponse(c *gin.Context, code int32, msg string) {
 	c.JSON(http.StatusOK, Response{
 		StatusCode: code,
@@ -26,27 +32,27 @@ func StatusResponse(c *gin.Context, code int32, msg string) {
 
 // RelationAction 关注或取消关注操作
 func RelationAction(c *gin.Context) {
-	userID, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
-	if err != nil {
-		StatusResponse(c, -1, code.InvalidParameter.Msg())
+	var req RelationActionRequest
+	userID := c.GetInt64("userID")
+	if err := c.ShouldBind(&req); err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusOK, Response{
+			StatusCode: http.StatusBadRequest,
+			StatusMsg:  "BadRequest",
+		})
 		return
 	}
-	toUserId, err := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
-	if err != nil {
-		StatusResponse(c, -1, code.InvalidParameter.Msg())
-		return
-	}
-	action := c.Query("action_type")
-	if action == "1" { //关注
-		err := service.FollowUser(userID, toUserId)
+
+	if req.ActionType == 1 { //关注
+		err := service.FollowUser(userID, req.ToUserID)
 		if err != nil {
 			StatusResponse(c, -1, err.Error())
 			return
 		}
 		StatusResponse(c, 0, code.Success.Msg())
 		return
-	} else if action == "2" { //取消关注
-		err := service.CancelFollowUser(userID, toUserId)
+	} else if req.ActionType == 2 { //取消关注
+		err := service.CancelFollowUser(userID, req.ToUserID)
 		if err != nil {
 			StatusResponse(c, -1, err.Error())
 			return

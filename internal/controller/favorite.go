@@ -11,8 +11,8 @@ import (
 )
 
 type FavoriteRequest struct {
-	VideoId    int64 `form:"video_id"`
-	ActionType int   `form:"action_type"`
+	VideoId    int64 `form:"video_id" binding:"required"`
+	ActionType int   `form:"action_type" binding:"required"`
 }
 
 func FavoriteAction(c *gin.Context) {
