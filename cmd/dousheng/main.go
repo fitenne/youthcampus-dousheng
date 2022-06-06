@@ -24,7 +24,7 @@ func init() {
 	}
 
 	jwt.Init([]byte(viper.GetString("app.secret")))
-	service.StroageHost = viper.GetString("app.stroage_host")
+	service.StroageHost = viper.GetString("app.storage")
 
 	err := repository.Init(repository.DBConfig{
 		Driver:   viper.GetString("db.driver"),

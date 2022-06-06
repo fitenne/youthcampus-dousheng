@@ -6,7 +6,10 @@
 app:
   name: dousheng
   secret: going小分队
-  stroage_host: "host or host:port" # used for play_url
+  # stroage_host is used for play_url.
+  # for example, if stroage_host is 'example.com:80'.
+  # server will tell client to get video from http://example.com:80/static/${video}
+  storage: "host or host:port" 
 
 db:
   driver: mysql
