@@ -5,7 +5,7 @@
 ```
 mkdir build && cd build
 mkdir -p public/img
-go build ./cmd/dousheng
+go build -o dousheng ../cmd/dousheng
 ```
 ## 团队介绍
 
