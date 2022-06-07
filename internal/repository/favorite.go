@@ -94,7 +94,7 @@ func (favoriteCtl *FavoriteCtl) CheckRepeatFavorite(userId int64, videoId int64,
 func (favoriteCtl *FavoriteCtl) FavoriteVideoList(userId int64) ([]model.Video, error) {
 	var videolistEntitis []model.Video
 
-	err := dbProvider.GetDB().Preload("Author").Joins("JOIN favorites ON favorites.video_id = videos.id AND favorites.user_id = ?", userId).Find(&videolistEntitis).Error
+	err := dbProvider.GetDB().Where("favorites.deleted_at is NULL").Preload("Author").Joins("JOIN favorites ON favorites.video_id = videos.id AND favorites.user_id = ?", userId).Find(&videolistEntitis).Error
 
 	for i := 0; i < len(videolistEntitis); i++ {
 		// 调用follow里的接口获取是否已关注

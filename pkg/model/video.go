@@ -3,8 +3,8 @@ package model
 import "gorm.io/gorm"
 
 type Video struct {
-	ID            int64 `json:"id,omitempty" gorm:"primaryKey;comment:短视频id;autoIncrement"`
-	Title         string
+	ID            int64          `json:"id,omitempty" gorm:"primaryKey;comment:短视频id;autoIncrement"`
+	Title         string         `json:"title"`
 	AuthorID      int64          `json:"-" gorm:"not null;comment:作者id"`
 	PlayUrl       string         `json:"play_url,omitempty" gorm:"size:50;not null;comment:短视频url"`
 	CoverUrl      string         `json:"cover_url,omitempty" gorm:"size:50;not null;comment:封面url"`
@@ -14,7 +14,7 @@ type Video struct {
 	DeletedAt     gorm.DeletedAt `json:"-" gorm:"index;comment:删除标记位"`
 
 	//作者
-	Author *User `json:"author" gorm:"ForeignKey:AuthorID;"`
+	Author *UserEntity `json:"author" gorm:"ForeignKey:AuthorID;"`
 	//是否点赞
 	IsFavorite bool `json:"is_favorite,omitempty" gorm:"-"`
 }
