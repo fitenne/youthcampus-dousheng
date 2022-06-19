@@ -1,22 +1,85 @@
-# simple-demo
+# 抖声项目
 
-## 抖音项目服务端简单示例
+## 快速开始
+项目缩略图依赖ffmpeg，视频文件存储在工作目录下的public文件夹
+```
+mkdir build && cd build
+mkdir -p public/img
+go build -o dousheng ../cmd/dousheng
+```
+## 团队介绍
 
-具体功能内容参考飞书说明文档
+- 队名：**going小分队**
 
-工程无其他依赖，直接编译运行即可
 
-```shell
-go build ./cmd/dousheng && ./dousheng
+- 队号：**1257836400**
+
+
+- 队员：**张康寒、陈奇廷、孙世铭、杨可、姚天野、程攻**
+
+
+
+## 项目介绍
+
+
+- 技术选型：**gin gorm mysql**
+
+
+- 目录结构：
+```
+DOUSHENG
+│─config.yaml      //配置文件
+│─dousheng.sql     //建表语句
+│
+├─cmd
+│  └─dousheng
+│          main.go      //程序入口
+│          router.go    //路由分配
+│
+├─internal
+│  ├─common     //公用部分    
+│  │  │
+│  │  ├─jwt     //token相关
+│  │  │
+│  │  ├─mid     //中间件
+│  │  │
+│  │  └─settings        //配置文件相关
+│  │
+│  ├─controller     //控制层
+│  │      comment.go
+│  │      common.go
+│  │      favorite.go
+│  │      feed.go
+│  │      publish.go
+│  │      relation.go
+│  │      user.go
+│  │
+│  ├─repository     //数据访问层
+│  │      comment.go
+│  │      db_provider.go
+│  │      favorite.go
+│  │      follow.go
+│  │      user.go
+│  │      video.go
+│  │
+│  └─service        //服务层
+│         comment.go
+│         favorite.go
+│         feed.go
+│         follow.go
+│         user.go
+│         video.go
+│      
+├─pkg
+│  └─model      //模型存储
+│          comment.go
+│          favorite.go
+│          user.go
+│          video.go
+│
+└─public        //存储数据
 ```
 
-### 功能说明
 
-接口功能不完善，仅作为示例
 
-* 用户登录数据保存在内存中，单次运行过程中有效
-* 视频上传后会保存到本地 public 目录中，访问时用 127.0.0.1:8080/static/video_name 即可
 
-### 测试数据
-
-测试数据写在 demo_data.go 中，用于列表接口的 mock 测试
