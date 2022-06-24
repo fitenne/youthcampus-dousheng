@@ -83,15 +83,15 @@ CREATE TABLE `comments`  (
 -- ----------------------------
 -- Table structure for follow
 -- ----------------------------
-DROP TABLE IF EXISTS `follow`;
-CREATE TABLE `follow`
-(
+CREATE TABLE `follow`(
     `id`          bigint(20)  NOT NULL AUTO_INCREMENT,
     `user_id`     bigint(20)  NOT NULL,
     `followed_id` varchar(64) NOT NULL,
-    `created_at` timestamp   NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4
+    `create_at`   timestamp   NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_follow_id` (`followed_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4;
 
 
 --
